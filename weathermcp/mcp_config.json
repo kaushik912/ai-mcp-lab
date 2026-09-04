@@ -1,0 +1,6 @@
+{
+  "mcpServers": {
+    "weather": { "url": "http://127.0.0.1:8001/mcp" },
+    "quotes":  { "url": "http://127.0.0.1:8002/mcp" }
+  }
+}

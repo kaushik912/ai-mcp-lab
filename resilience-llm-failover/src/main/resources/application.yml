@@ -1,0 +1,33 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: resilience-llm-failover
+
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+  model-name: gemini-1.5-turbo
+
+openrouter:
+  api-key: ${OPENROUTER_API_KEY:}
+  base-url: https://openrouter.ai/api/v1
+  model-name: openrouter/free
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      geminiService:
+        slidingWindowSize: 4
+        minimumNumberOfCalls: 2
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 2
+        recordExceptions:
+          - dev.langchain4j.exception.RateLimitException
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs

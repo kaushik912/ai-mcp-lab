@@ -1,0 +1,151 @@
+---
+status: approved
+---
+
+# Spec: Spring AI Multi-Service Model Context Protocol (MCP) System
+
+Source ticket: `TICKET-001` (`tickets/TICKET-001.yaml`)
+
+## Problem
+
+There is no reference implementation demonstrating how independent Spring Boot
+services can expose domain data as MCP tools over SSE, and how a separate
+Spring AI chat client can discover and orchestrate those tools (including
+across multiple MCP servers in a single LLM response) to answer natural
+language questions about person and account data.
+
+## Goal
+
+Build three independent Spring Boot 3.x applications implementing the Model
+Context Protocol (MCP) with Spring AI, based on the architecture described in
+Piotr Minkowski's blog post
+(https://piotrminkowski.com/2025/03/17/using-model-context-protocol-mcp-with-spring-ai/):
+
+1. **person-mcp-service** (port 8060) — MCP server over WebFlux/SSE, backed by
+   H2 + Spring Data JPA, exposing `getPersonById` and
+   `getPersonsByNationality` as `@Tool`-annotated MCP tools via a
+   `ToolCallbackProvider` bean.
+
+2. **account-mcp-service** (port 8040) — MCP server over WebFlux/SSE, backed
+   by H2 + Spring Data JPA, exposing `getAccountsByPersonId` as an MCP tool
+   via a `ToolCallbackProvider` bean.
+
+3. **sample-client** (port 8080) — MCP client + REST API. Connects to both
+   MCP servers over SSE (`spring.ai.mcp.client.sse.connections`), registers
+   the combined `ToolCallbackProvider` into a Spring AI `ChatClient` via
+   `.defaultTools(tools)`, and uses a chat model served via OpenRouter
+   (OpenAI-compatible API, base-url `https://openrouter.ai/api/v1`,
+   `OPENROUTER_API_KEY` env var, default model `openai/gpt-4o-mini`) to
+   fulfill natural-language prompts that trigger tool calls against one or
+   both MCP servers.
+
+   Exposes:
+   - `GET /persons/nationality/{nationality}`
+   - `GET /persons/count-by-nationality/{nationality}`
+   - `GET /accounts/count-by-person-id/{personId}`
+   - `GET /accounts/balance-by-person-id/{personId}` — multi-tool
+     orchestration across both MCP servers (accounts from
+     account-mcp-server, person name/nationality from person-mcp-server,
+     aggregated by the LLM into one response)
+
+Each server ships an `import.sql` with sample data so the end-to-end flow
+works on a fresh H2 in-memory DB at startup.
+
+## Non-Goals
+
+- Authentication/authorization on any of the three services or between them.
+- Production-grade persistence (no non-H2 database, no migrations/Flyway/Liquibase).
+- Containerization, CI/CD pipelines, or deployment configuration.
+- A frontend/UI — REST endpoints only, tested via HTTP client (e.g. Bruno/curl).
+- Observability/metrics/tracing beyond default Spring Boot logging.
+- Rate limiting, retries, or circuit breakers on MCP client<->server calls.
+- Support for multiple simultaneous chat model backends — a single
+  OpenRouter-configured, OpenAI-compatible endpoint is used.
+- Editing/writing person or account data (read-only tools only).
+
+## Acceptance Criteria
+
+- [ ] `person-mcp-service` starts on port 8060, named `person-mcp-server`
+      v1.0.0, and loads sample `Person` rows via `import.sql` into H2 on
+      startup.
+- [ ] `person-mcp-service` exposes MCP tools `getPersonById(id: Long)`
+      (returns `Person` or null) and
+      `getPersonsByNationality(nationality: String)` (returns
+      `List<Person>`), both backed by a `ToolCallbackProvider` bean built
+      with `MethodToolCallbackProvider.builder()`.
+- [ ] `account-mcp-service` starts on port 8040, named `account-mcp-server`
+      v1.0.0, and loads sample `Account` rows via `import.sql` into H2 on
+      startup.
+- [ ] `account-mcp-service` exposes MCP tool
+      `getAccountsByPersonId(personId: Long)` (returns `List<Account>`),
+      backed by a `ToolCallbackProvider` bean.
+- [ ] `sample-client` starts on port 8080, connects over SSE to both
+      `person-mcp-server` (`localhost:8060`) and `account-mcp-server`
+      (`localhost:8040`), and its `ChatClient.Builder` is configured with
+      `.defaultTools(tools)` sourced from the auto-configured
+      `ToolCallbackProvider`.
+- [ ] `GET /persons/nationality/{nationality}` triggers an LLM tool call to
+      `person-mcp-server` and returns person records for that nationality.
+- [ ] `GET /persons/count-by-nationality/{nationality}` triggers an LLM tool
+      call and returns the count of persons for that nationality.
+- [ ] `GET /accounts/count-by-person-id/{personId}` triggers an LLM tool call
+      to `account-mcp-server` and returns the account count for that person.
+- [ ] `GET /accounts/balance-by-person-id/{personId}` triggers tool calls to
+      BOTH `account-mcp-server` (accounts/balances) and `person-mcp-server`
+      (name/nationality), returning the person's name, nationality, and
+      total balance across their accounts.
+- [ ] End-to-end manual test: with `person-mcp-service` and
+      `account-mcp-service` started first, then `sample-client`, `GET
+      http://localhost:8080/accounts/balance-by-person-id/1` succeeds; client
+      logs show SSE connections to both MCP servers and execution of both the
+      `getAccountsByPersonId` and `getPersonById` tool callbacks; the
+      response contains the correct person name/nationality and correct
+      summed balance for person id 1's seeded accounts.
+
+## Stack Notes
+
+- Java 17+, Spring Boot 3.x, Spring AI (use latest stable Spring AI MCP
+  starter versions available at implementation time — check Maven Central /
+  Spring AI release notes rather than assuming a version).
+- `person-mcp-service`, `account-mcp-service`:
+  `spring-ai-mcp-server-webflux-spring-boot-starter`,
+  `spring-boot-starter-data-jpa`, `h2` (runtime scope).
+- `sample-client`: `spring-boot-starter-web`,
+  `spring-ai-mcp-client-webflux-spring-boot-starter`,
+  `spring-ai-openai-spring-boot-starter` (used against OpenRouter — OpenRouter
+  exposes an OpenAI-compatible API, so the existing OpenAI starter is reused
+  with base-url/key/model overridden; no separate OpenRouter starter needed).
+- H2 in-memory, `spring.jpa.hibernate.ddl-auto=create-drop`, `import.sql` per
+  service.
+- `Person`: id (Long, PK, generated), firstName, lastName, age (int),
+  nationality (String), gender (enum: MALE, FEMALE, ...).
+- `Account`: id (Long, PK, generated), number (String), balance (int),
+  personId (Long).
+- Repos: `PersonRepository` (findById inherited, findByNationality custom);
+  `AccountRepository` (findByPersonId custom).
+- `spring.ai.mcp.client.sse.connections` config maps logical server names
+  (`person-mcp-server` -> `http://localhost:8060`, `account-mcp-server` ->
+  `http://localhost:8040`).
+- OpenRouter config in `sample-client`: `spring.ai.openai.base-url=https://openrouter.ai/api/v1`,
+  `spring.ai.openai.api-key=${OPENROUTER_API_KEY}`,
+  `spring.ai.openai.chat.options.model=openai/gpt-4o-mini` (default,
+  overridable via `OPENROUTER_MODEL`). Key via env var only, never hardcoded
+  (repo security rule).
+- Per repo convention: use `spring` CLI for scaffolding if available
+  (`command -v spring`), else Spring Initializr; add springdoc-openapi
+  (`springdoc-openapi-starter-webmvc-ui`) to `sample-client` since it's the
+  service exposing the REST API, with `@Tag`/`@Operation` annotations on
+  `PersonController`/`AccountController`.
+- Reference the linked blog post's architecture for package layout
+  conventions where this spec is silent; treat it as an architectural
+  reference only, not code to copy verbatim.
+
+## Testing Seam
+
+Layered — each of the three services gets unit tests plus integration tests
+(e.g. `@DataJpaTest` for repositories, `@SpringBootTest`/`WebTestClient` for
+the MCP tool + SSE flow and for `sample-client`'s REST endpoints).
+
+## API Docs
+
+Yes — springdoc-openapi on `sample-client` (Swagger UI + OpenAPI spec).

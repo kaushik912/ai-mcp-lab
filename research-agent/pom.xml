@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>4.1.0</version>
+		<relativePath/>
+	</parent>
+	<groupId>com.example</groupId>
+	<artifactId>research-agent</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>research-agent</name>
+	<description>Gemini-powered research agent: MCP tool calling + RAG + session memory</description>
+
+	<properties>
+		<java.version>17</java.version>
+		<spring-ai.version>2.0.0</spring-ai.version>
+	</properties>
+
+	<dependencies>
+		<!-- web layer for the /agent endpoints -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc</artifactId>
+		</dependency>
+
+		<!-- MCP client: discovers tools from the news-search-tool server over SSE -->
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-mcp-client-webflux</artifactId>
+		</dependency>
+
+		<!-- Gemini chat via Google's OpenAI-compatible endpoint -->
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-model-openai</artifactId>
+		</dependency>
+
+		<!--
+		  Gemini embeddings via the native Google GenAI module, not the
+		  OpenAI-compat endpoint: Gemini's OpenAI-compatible /embeddings
+		  response omits the "index" field on each item, which the strict
+		  openai-java client rejects (OpenAIInvalidDataException: `index`
+		  is not set). The native module talks to Gemini directly and
+		  doesn't hit that incompatibility.
+		-->
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-model-google-genai-embedding</artifactId>
+		</dependency>
+
+		<!-- SimpleVectorStore (in-memory) for RAG; no dedicated starter, just the core module -->
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-vector-store</artifactId>
+		</dependency>
+
+		<!-- QuestionAnswerAdvisor: RAG advisor that queries the vector store -->
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-vector-store-advisor</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.ai</groupId>
+				<artifactId>spring-ai-bom</artifactId>
+				<version>${spring-ai.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

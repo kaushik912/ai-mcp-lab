@@ -1,0 +1,11 @@
+target/
+*.class
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+dist/
+build/
+.idea/
+*.iml
+.DS_Store

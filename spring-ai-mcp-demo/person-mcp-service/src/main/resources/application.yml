@@ -1,0 +1,22 @@
+server:
+  port: 8060
+
+spring:
+  application:
+    name: person-mcp-service
+  ai:
+    mcp:
+      server:
+        name: person-mcp-server
+        version: 1.0.0
+  datasource:
+    url: jdbc:h2:mem:persondb
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    defer-datasource-initialization: true
+    open-in-view: false
+
+logging:
+  level:
+    io.modelcontextprotocol: DEBUG

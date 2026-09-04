@@ -1,0 +1,23 @@
+# Uses the current LangChain v1 / LangGraph API (langchain.agents.create_agent,
+# langgraph.graph.StateGraph, checkpointer-based memory). Do not pin these back to
+# 0.3.x - the code here relies on APIs that only exist in 1.0+.
+python-dotenv
+langchain
+langchain-core
+langgraph
+langchain-openai
+langchain-google-genai
+langchain-openrouter
+langchain-community
+langchain-chroma
+langchain-text-splitters
+streamlit
+chromadb
+faiss-cpu
+pypdf
+wikipedia
+ddgs
+numpy
+beautifulsoup4
+markdown
+python-docx

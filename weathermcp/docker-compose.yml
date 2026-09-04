@@ -1,0 +1,33 @@
+services:
+  weather-mcp:
+    build: .
+    command: python weather_mcp.py
+    environment:
+      MCP_HOST: "0.0.0.0"
+      MCP_PORT: "8001"
+    ports:
+      - "8001:8001"
+
+  quote-mcp:
+    build: .
+    command: python quote_mcp.py
+    environment:
+      MCP_HOST: "0.0.0.0"
+      MCP_PORT: "8002"
+    ports:
+      - "8002:8002"
+
+  agent:
+    build: .
+    command: uvicorn agent:app --host 0.0.0.0 --port 8000
+    environment:
+      # aggregate tools from BOTH MCP servers
+      MCP_URLS: "http://weather-mcp:8001/mcp,http://quote-mcp:8002/mcp"
+      MODEL: "${MODEL:-anthropic/claude-sonnet-5}"
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}"
+      # OPENROUTER_API_KEY: "${OPENROUTER_API_KEY}"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - weather-mcp
+      - quote-mcp

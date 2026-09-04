@@ -1,0 +1,30 @@
+id: TICKET-001
+slug: resilience-llm-failover
+title: Gemini → OpenRouter resilience failover with Swagger API
+problem: |
+  LLM API calls to Google Gemini are subject to rate limiting (HTTP 429).
+  When rate-limited, requests fail immediately instead of gracefully degrading to a secondary provider.
+problem: Gemini requests fail under rate limiting instead of falling back to OpenRouter.
+goal: |
+  Build a Spring Boot microservice with Resilience4j circuit breaker that:
+  - Routes chat requests to Google Gemini by default
+  - Automatically switches to OpenRouter when Gemini returns HTTP 429 or times out
+  - Exposes a REST endpoint with Swagger/OpenAPI documentation
+  - Tracks which provider handled each response
+non_goals:
+  - Full health monitoring or automatic recovery probing
+  - Database persistence or chat history
+  - Authentication/authorization beyond API keys
+  - Cost optimization or load balancing across providers
+acceptance:
+  - POST /api/chat accepts a JSON prompt and returns LLM response via Gemini or OpenRouter
+  - When Gemini returns HTTP 429, the next request routes to OpenRouter (circuit opens)
+  - Response includes a header or field indicating which provider handled the request
+  - Swagger documentation is accessible at /swagger-ui.html
+  - Service starts cleanly with `mvn spring-boot:run`
+stack_notes: |
+  Spring Boot 3.x, Resilience4j 2.2.0, LangChain4j for Gemini/OpenRouter clients.
+  Use /spring-init to scaffold the base project.
+testing_seam: single
+api_docs: true
+auto_approve: true

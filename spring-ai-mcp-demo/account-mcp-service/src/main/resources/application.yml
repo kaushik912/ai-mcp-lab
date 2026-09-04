@@ -1,0 +1,22 @@
+server:
+  port: 8040
+
+spring:
+  application:
+    name: account-mcp-service
+  ai:
+    mcp:
+      server:
+        name: account-mcp-server
+        version: 1.0.0
+  datasource:
+    url: jdbc:h2:mem:accountdb
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    defer-datasource-initialization: true
+    open-in-view: false
+
+logging:
+  level:
+    io.modelcontextprotocol: DEBUG
