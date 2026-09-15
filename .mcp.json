@@ -4,6 +4,10 @@
       "command": "/home/kaush/.local/bin/codebase-memory-mcp",
       "args": [],
       "env": { "CBM_ALLOWED_ROOT": "/home/kaush/github_projs/ai-mcp-lab" }
+    },
+    "openapi-mcp": {
+      "command": "uv",
+      "args": ["--directory", "/home/kaush/github_projs/ai-mcp-lab/openapi-mcp", "run", "openapi-mcp"]
     }
   }
 }

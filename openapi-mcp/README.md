@@ -53,3 +53,18 @@ list_endpoints()
 seed("POST", "/todos", count=5)
 call_endpoint("GET", "/todos")
 ```
+
+## Quick test (Swagger Petstore3)
+
+No local API needed — point it at the public Petstore3 sandbox and ask in
+plain English (Claude Code maps this to the tool calls automatically):
+
+```
+Load the OpenAPI spec at https://petstore3.swagger.io/api/v3/openapi.json
+List the endpoints
+Describe the GET /pet/findByStatus endpoint
+Generate a sample payload for GET /pet/findByStatus
+Call GET /pet/findByStatus
+Call POST /pet
+Seed POST /pet with 5 fake pets
+```
