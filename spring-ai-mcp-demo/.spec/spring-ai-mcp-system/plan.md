@@ -7,7 +7,7 @@ status: approved
 ## Stack detection
 
 Greenfield repo, no existing build files. Ticket (`stack_notes`) and repo convention
-(`my-claude-skills/.claude/rules/spring.md`) mandate Spring Boot + the `spring` CLI.
+(`my-claude-lib/.claude/rules/spring.md`) mandate Spring Boot + the `spring` CLI.
 Confirmed locally:
 
 - `spring` CLI v4.1.0 available (`command -v spring`).
