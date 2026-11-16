@@ -1,6 +1,6 @@
 # Quiz Generator — Spec (draft)
 
-Spring AI app: user gives a topic + difficulty, gets 10 dynamic, concept-focused questions as strictly validated JSON. Graded server-side. Stateless. Minimal UI.
+Spring AI app: user gives a topic + difficulty, gets 10 dynamic, concept-focused questions as strictly validated JSON. Graded client-side. Stateless. Minimal UI.
 
 ## Decisions (from discussion)
 | # | Topic | Decision |
