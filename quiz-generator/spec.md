@@ -8,13 +8,13 @@ Spring AI app: user gives a topic + difficulty, gets 10 dynamic, concept-focused
 | 1 | Provider | OpenRouter, **user-supplied key (BYOK)**, (OpenAI-compatible, Spring AI `spring-ai-starter-model-openai` w/ base-url `https://openrouter.ai/api`). Default model `google/gemini-2.5-flash` (configurable). Alternatives: `google/gemini-2.5-flash-lite` (cheaper), `openai/gpt-4.1-mini`, `anthropic/claude-haiku-4.5` |
 | 2 | Question types | All single-correct MCQ (4 options, exactly 1 right). Two kinds: CONCEPT (1-2 line question) and SCENARIO (longer paragraph, ~4-6 sentences, then question). Test **concepts / trade-offs / reasoning**, NOT API/annotation trivia |
 | 3 | Difficulty | User-selectable: EASY / MEDIUM / HARD |
-| 4 | Grading | Server-side, stateless (see below) |
+| 4 | Grading | Client-side. Answers returned in the quiz response; no token, no grade endpoint (learning app, keep simple) |
 | 5 | Persistence | None |
 | 6 | Location | `ai-mcp-lab/quiz-generator/` (new Maven module, Java 21, Spring Boot 3.5.x, Spring AI 1.0.x) |
 
 ## API
-- `POST /api/quiz` header `X-OpenRouter-Key: <user key>`, body `{topic, difficulty, model?}` -> `{quizToken, questions:[{id,kind,scenario?,question,options[4]}]}` (NO answers)
-- `POST /api/quiz/grade` `{quizToken, answers:[{id, selectedIndex}]}` -> `{score, total, results:[{id, correct, correctIndex, explanation}]}`
+- `POST /api/quiz` header `X-OpenRouter-Key: <user key>`, body `{topic, difficulty, model?}` -> `{topic, questions:[{kind,scenario?,question,options[4],correctIndex,explanation}]}`
+- That's the only endpoint. UI compares selection vs `correctIndex` and shows explanation.
 
 ## Question schema (model output)
 ```json
@@ -37,16 +37,12 @@ On failure: re-prompt with the specific validation errors. After 3 failures -> H
 4. Explicit negative rules: no annotation/syntax/version trivia, no "which of the following is NOT", no repeated phrasing.
 5. (Optional, later) 2-step: call 1 generates subtopic list, call 2 generates questions.
 
-## Server-side grading, stateless
-- On generate, answer key + rubrics are packed into `quizToken` = AES-GCM encrypted (or HMAC-signed + encrypted) payload, key from env `QUIZ_TOKEN_SECRET`, with expiry. Client sends it back with answers.
-- Deterministic compare of `selectedIndex` vs `correctIndex`. No LLM call at grading.
-
 ## UI
-Single static page (`resources/static/index.html`, vanilla JS): topic input, difficulty select, Generate, render questions, Submit, show score + per-question feedback.
+Single static page (`resources/static/index.html`, vanilla JS): key input, topic input, difficulty select, Generate, render questions, Submit, show score + per-question explanation (graded in browser).
 
 ## Deployment & phone use
 - Host: **Google Cloud Run** (always-free tier: ~2M req/mo; scales to zero; needs billing account w/ card). Verify current limits on Cloud Run pricing page.
-- Dockerfile (multi-stage, JRE 21). Env vars via Cloud Run settings / Secret Manager: `QUIZ_TOKEN_SECRET` only. **No server-side LLM key.**
+- Dockerfile (multi-stage, JRE 21). No env vars needed. **No server-side LLM key.**
 - Cold start: Spring Boot ~5-15s after idle. Mitigate: lazy init, small image, optionally min-instances=0 (free) and accept delay. Later option: native image / CRaC.
 - Region: free-tier-eligible US region (e.g. us-central1).
 - Phone: plain HTTPS URL in mobile browser; mobile-first CSS (viewport meta, single column, large tap targets). Optional: add-to-home-screen manifest.
@@ -56,13 +52,12 @@ Single static page (`resources/static/index.html`, vanilla JS): topic input, dif
 - UI: key input field, stored in browser localStorage (with "forget key" button); sent per request in `X-OpenRouter-Key` header over HTTPS. UI warns: use a dedicated key with a credit limit.
 - Server uses the key for that request only: build per-request Spring AI `OpenAiApi`/`ChatClient` with the supplied key; never store, never log (mask headers in logs, no request-body/header logging), never echo in errors.
 - Invalid/missing key -> 401 with generic message (OpenRouter 401/402 mapped to clear errors, e.g. out of credits).
-- Grading needs no key (deterministic).
-- XSS hygiene since key is in localStorage: no innerHTML with model output (use textContent), strict CSP header, no third-party scripts.
-- Abuse protection (not credit-related): per-IP rate limit, topic length cap (~100 chars), Cloud Run max-instances cap to bound hosting cost.
+- Key is in localStorage: render model output with `textContent` (no innerHTML), no third-party scripts.
+- Light limits: topic length cap (~100 chars), Cloud Run max-instances cap. No rate limiter for now.
 - Topic is untrusted input: wrapped/delimited in prompt.
 
 ## Config
-`QUIZ_TOKEN_SECRET`, `quiz.token-ttl` (default 2h), `quiz.model` (default `google/gemini-2.5-flash`), `quiz.max-attempts=3`, `quiz.temperature=0.9`.
+`quiz.model` (default `google/gemini-2.5-flash`), `quiz.max-attempts=3`, `quiz.temperature=0.9`.
 
 ## Open questions
 - Add topic safety/length limit on input?
