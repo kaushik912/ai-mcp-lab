@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quiz Generator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>Quiz Generator</h1>
+
+    <form id="form" autocomplete="on">
+      <label>OpenRouter API key
+        <input id="key" name="password" type="password" autocomplete="current-password" required>
+      </label>
+      <p class="hint">Kept in this page only; gone when you leave. Use a key with a credit limit.</p>
+
+      <label>Topic
+        <input id="topic" type="text" maxlength="100" placeholder="e.g. database query optimization" required>
+      </label>
+
+      <label>Difficulty
+        <select id="difficulty">
+          <option>EASY</option>
+          <option selected>MEDIUM</option>
+          <option>HARD</option>
+        </select>
+      </label>
+
+      <button id="generate" type="submit">Generate 10 questions</button>
+    </form>
+
+    <p id="status" role="status"></p>
+    <section id="quiz" hidden>
+      <div id="questions"></div>
+      <button id="submit" type="button">Submit answers</button>
+      <p id="score"></p>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
