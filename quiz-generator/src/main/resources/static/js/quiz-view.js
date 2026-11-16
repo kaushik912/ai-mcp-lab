@@ -1,8 +1,9 @@
 // "New quiz" view: generate form -> API call -> render questions -> grade in the browser.
 // Also owns the star buttons on question cards.
-import { $, el, optionRow, markAnswer } from './dom.js';
+import { $, el, optionRow, markAnswer, scenarioBlock } from './dom.js';
 import * as store from './favorites-store.js';
 import { setMessage } from './notices.js';
+import { getSelection } from './topics.js';
 
 const form = $('form');
 const statusEl = $('status');
@@ -25,6 +26,7 @@ async function generate() {
   generateBtn.disabled = true;
   quizEl.hidden = true;
   quizDifficulty = $('difficulty').value;
+  const { topic, scope } = getSelection();
   setStatus('Generating... this can take 10-30 seconds.');
   try {
     const res = await fetch('/api/quiz', {
@@ -33,7 +35,7 @@ async function generate() {
         'Content-Type': 'application/json',
         'X-OpenRouter-Key': $('key').value,
       },
-      body: JSON.stringify({ topic: $('topic').value, difficulty: quizDifficulty }),
+      body: JSON.stringify({ topic, scope: scope || undefined, difficulty: quizDifficulty }),
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(body.error || 'Request failed (' + res.status + ')');
@@ -93,7 +95,7 @@ function render() {
     head.appendChild(el('div', 'meta', 'Q' + (i + 1) + ' · ' + q.kind.toLowerCase()));
     head.appendChild(starButton(q));
     box.appendChild(head);
-    if (q.scenario) box.appendChild(el('div', 'scenario', q.scenario));
+    if (q.scenario) box.appendChild(scenarioBlock(q.scenario));
     box.appendChild(el('div', 'text', q.question));
     q.options.forEach((opt, j) => box.appendChild(optionRow('q' + i, j, opt)));
     questionsEl.appendChild(box);

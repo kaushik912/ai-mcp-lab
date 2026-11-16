@@ -11,6 +11,12 @@ export function el(tag, cls, text) {
   return e;
 }
 
+// Scenario text. Keeps line breaks; a multi-line scenario is almost certainly code, so it also gets
+// a monospace font (class "code").
+export function scenarioBlock(text) {
+  return el('div', text.includes('\n') ? 'scenario code' : 'scenario', text);
+}
+
 // One option row (radio + label). Shared by the quiz view and the saved view.
 export function optionRow(name, index, text) {
   const label = el('label', 'opt');

@@ -17,7 +17,9 @@ button:disabled { opacity:.6; cursor:wait; }
 #status.error { color:var(--bad); }
 .q { border:1px solid var(--line); border-radius:10px; padding:12px; margin:16px 0; }
 .q .meta { color:var(--muted); font-size:.8rem; }
-.q .scenario { margin:8px 0; padding:8px 10px; border-left:3px solid var(--line); }
+.q .scenario { margin:8px 0; padding:8px 10px; border-left:3px solid var(--line);
+  white-space:pre-wrap; overflow-wrap:anywhere; }
+.q .scenario.code { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:.9rem; }
 .q .text { font-weight:600; margin:8px 0; }
 .opt { display:flex; gap:10px; align-items:flex-start; padding:10px; margin:6px 0;
   border:1px solid var(--line); border-radius:8px; cursor:pointer; font-weight:400; }

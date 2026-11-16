@@ -1,5 +1,5 @@
 // "Saved" view: topic filter + practice cards (answer hidden until Reveal) + remove.
-import { $, el, optionRow, markAnswer } from './dom.js';
+import { $, el, optionRow, markAnswer, scenarioBlock } from './dom.js';
 import * as store from './favorites-store.js';
 import { setMessage } from './notices.js';
 
@@ -48,7 +48,7 @@ function savedCard(f) {
   });
   head.appendChild(remove);
   box.appendChild(head);
-  if (f.scenario) box.appendChild(el('div', 'scenario', f.scenario));
+  if (f.scenario) box.appendChild(scenarioBlock(f.scenario));
   box.appendChild(el('div', 'text', f.question));
 
   const name = 'f' + f.id;

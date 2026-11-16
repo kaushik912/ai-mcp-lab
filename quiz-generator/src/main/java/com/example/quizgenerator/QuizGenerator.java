@@ -23,6 +23,7 @@ import tools.jackson.databind.json.JsonMapper;
 public class QuizGenerator {
 
     private static final Logger log = LoggerFactory.getLogger(QuizGenerator.class);
+    static final int MAX_SCOPE = 400;
 
     private final QuizLlm llm;
     private final BlueprintBuilder blueprint;
@@ -50,13 +51,17 @@ public class QuizGenerator {
         if (topic.isEmpty() || topic.length() > 100) {
             throw new QuizException(HttpStatus.BAD_REQUEST, "topic is required (max 100 characters)");
         }
+        String scope = request.scope() == null || request.scope().isBlank() ? null : request.scope().strip();
+        if (scope != null && scope.length() > MAX_SCOPE) {
+            throw new QuizException(HttpStatus.BAD_REQUEST, "scope is too long (max " + MAX_SCOPE + " characters)");
+        }
         Difficulty difficulty = request.difficulty() == null ? Difficulty.MEDIUM : request.difficulty();
         String model = request.model() == null || request.model().isBlank() ? defaultModel : request.model().strip();
 
         List<Slot> slots = blueprint.build(ThreadLocalRandom.current());
         List<String> errors = List.of();
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-            String prompt = promptBuilder.build(topic, difficulty, slots, errors);
+            String prompt = promptBuilder.build(topic, scope, difficulty, slots, errors);
             String raw = call(apiKey, model, prompt);
             errors = check(raw, slots);
             if (errors.isEmpty()) {

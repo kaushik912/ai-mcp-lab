@@ -6,6 +6,7 @@ import { setMessage, setStorageNotice } from './js/notices.js';
 import { initQuizView } from './js/quiz-view.js';
 import { initSavedView, renderSaved } from './js/saved-view.js';
 import { initFavoritesIo } from './js/favorites-io.js';
+import { initTopics } from './js/topics.js';
 
 const viewNew = $('view-new');
 const viewSaved = $('view-saved');
@@ -28,6 +29,7 @@ tabSaved.addEventListener('click', () => showTab('saved'));
 initQuizView();
 initSavedView();
 initFavoritesIo();
+initTopics(); // loads topics.json (async); falls back to free text if it fails
 
 // Header bits that depend on store state.
 store.subscribe(() => {

@@ -1,0 +1,26 @@
+[
+  {
+    "label": "Java",
+    "hint": "Strings and the String pool (object counts), equals() and hashCode() contract and overriding, Maps and Collections (custom keys, are two objects equal), Streams and lambdas, Generics, Exceptions, OOP and immutability, Concurrency, JVM and GC"
+  },
+  {
+    "label": "Spring and JPA",
+    "hint": "Dependency injection and beans, Spring Boot auto-configuration, Transactions and proxies, REST controllers and validation, Security basics, JPA and Hibernate (N+1, lazy loading, entity equality), Testing"
+  },
+  {
+    "label": "Databases",
+    "hint": "SQL and query optimization, Indexing, Transactions and isolation, Database design, NoSQL, Caching"
+  },
+  {
+    "label": "System design",
+    "hint": "Scalability and load balancing, Distributed systems, Messaging and Kafka, Microservices, Resilience and reliability"
+  },
+  {
+    "label": "Web and security",
+    "hint": "HTTP and REST, API design, Authentication and authorization, Common web vulnerabilities"
+  },
+  {
+    "label": "DevOps and cloud",
+    "hint": "Docker, Kubernetes, CI/CD, Cloud basics, Observability"
+  }
+]

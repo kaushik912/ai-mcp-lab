@@ -25,8 +25,10 @@
       <p class="hint">Kept in this page only; gone when you leave. Use a key with a credit limit.</p>
 
       <label>Topic
-        <input id="topic" type="text" maxlength="100" placeholder="e.g. database query optimization" required>
+        <select id="topic-select"></select>
       </label>
+      <input id="topic" type="text" maxlength="100" aria-label="Custom topic"
+             placeholder="Type your own topic, e.g. Kafka consumer groups" hidden>
 
       <label>Difficulty
         <select id="difficulty">

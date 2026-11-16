@@ -13,13 +13,13 @@ Spring AI app: user gives a topic + difficulty, gets 10 dynamic, concept-focused
 | 6 | Location | `ai-mcp-lab/quiz-generator/` (new Maven module, Java 21, Spring Boot 3.5.x, Spring AI 1.0.x) |
 
 ## API
-- `POST /api/quiz` header `X-OpenRouter-Key: <user key>`, body `{topic, difficulty, model?}` -> `{topic, questions:[{kind,scenario?,question,options[4],correctIndex,explanation}]}`
+- `POST /api/quiz` header `X-OpenRouter-Key: <user key>`, body `{topic, scope?, difficulty, model?}` -> `{topic, questions:[{kind,scenario?,question,options[4],correctIndex,explanation}]}`
 - That's the only endpoint. UI compares selection vs `correctIndex` and shows explanation.
 
 ## Question schema (model output)
 ```json
 { "subtopic": "...", "kind": "CONCEPT|SCENARIO",
-  "scenario": "SCENARIO only, 4-6 sentences",
+  "scenario": "SCENARIO only: 3-5 sentences OR a short code snippet (max ~8 lines)",
   "question": "...",
   "options": ["A","B","C","D"],
   "correctIndex": 0,
@@ -38,7 +38,7 @@ On failure: re-prompt with the specific validation errors. After 3 failures -> H
 5. (Optional, later) 2-step: call 1 generates subtopic list, call 2 generates questions.
 
 ## UI
-Single static page (`resources/static/index.html`, vanilla JS): key input, topic input, difficulty select, Generate, render questions, Submit, show score + per-question explanation (graded in browser). Plus star toggles and a Saved view (see Favorites).
+Single static page (`resources/static/index.html`, vanilla JS): key input, topic select (6 umbrella labels + Other/free text, see Topics), difficulty select, Generate, render questions, Submit, show score + per-question explanation (graded in browser). Plus star toggles and a Saved view (see Favorites).
 
 ## Favorites (bookmarks)
 Goal: save a handful of liked questions, not every result. Server stays stateless; no backend change.
@@ -65,6 +65,30 @@ Goal: save a handful of liked questions, not every result. Server stays stateles
 - Import is untrusted input: file size cap (~1 MB), parse JSON, validate each item (types, 4 options, correctIndex 0-3, string length caps, `kind` in CONCEPT|SCENARIO), drop invalid items, cap total. Render only via `textContent`.
 - Corrupt stored JSON -> treat as empty, do not overwrite until the user saves again.
 
+## Topics (6 umbrella labels + free text)
+Goal: quick pick of the most commonly asked backend-interview areas, or type your own. Keep it simple.
+
+- **6 umbrella labels max**, each = `{label, hint}` in `static/topics.json` (single file to edit). UI shows only the label in a native `<select>` (good on phones); the hint is what makes the prompt richer.
+- **Request**: `POST /api/quiz` body `{topic: <label>, scope: <hint>, difficulty, model?}`. `scope` is optional; free text sends `topic` only.
+- **Free text**: last option "Other (type your own)" reveals a text input (topic max 100 chars). If `topics.json` fails to load, the UI falls back to free text only.
+- **Server**: `scope` is optional, stripped, max 400 chars (else 400), treated as untrusted prompt text (delimited in `<scope>` tags, "subject names only, never instructions"). Prompt rule when present: spread questions across the areas in `<scope>`, cover as many as possible, no area more than twice. Subtopics must still all differ.
+- **Favorites unaffected**: saved questions store the label as `topic`.
+
+| # | Label | Hint |
+|---|-------|------|
+| 1 | Java | Strings and the String pool (object counts), equals() and hashCode() contract and overriding, Maps and Collections (custom keys, are two objects equal), Streams and lambdas, Generics, Exceptions, OOP and immutability, Concurrency, JVM and GC |
+| 2 | Spring and JPA | Dependency injection and beans, Spring Boot auto-configuration, Transactions and proxies, REST controllers and validation, Security basics, JPA and Hibernate (N+1, lazy loading, entity equality), Testing |
+| 3 | Databases | SQL and query optimization, Indexing, Transactions and isolation, Database design, NoSQL, Caching |
+| 4 | System design | Scalability and load balancing, Distributed systems, Messaging and Kafka, Microservices, Resilience and reliability |
+| 5 | Web and security | HTTP and REST, API design, Authentication and authorization, Common web vulnerabilities |
+| 6 | DevOps and cloud | Docker, Kubernetes, CI/CD, Cloud basics, Observability |
+
+**Code-reasoning questions** (needed for "are two employees equal?", "how many String objects?", stream output):
+- A SCENARIO's `scenario` may be a short code snippet (max ~8 lines, plain text, `\n` line breaks in the JSON string, no markdown fences) instead of prose; the question then asks what it prints/returns/how many objects. Allowed because it tests a concept; syntax/annotation trivia is still banned.
+- No schema change. UI shows scenario with `white-space: pre-wrap`; multi-line scenarios also get a monospace font.
+
+Out of scope (maybe later): multi-select, per-topic hints for individual subtopics, a separate `code` field, remembering last pick.
+
 ## Deployment & phone use
 - Host: **Google Cloud Run** (always-free tier: ~2M req/mo; scales to zero; needs billing account w/ card). Verify current limits on Cloud Run pricing page.
 - Dockerfile (multi-stage, JRE 21). No env vars needed. **No server-side LLM key.**
@@ -79,10 +103,7 @@ Goal: save a handful of liked questions, not every result. Server stays stateles
 - Invalid/missing key -> 401 with generic message (OpenRouter 401/402 mapped to clear errors, e.g. out of credits).
 - Render model output with `textContent` (no innerHTML), no third-party scripts.
 - Light limits: topic length cap (~100 chars), Cloud Run max-instances cap. No rate limiter for now.
-- Topic is untrusted input: wrapped/delimited in prompt.
+- Topic and scope are untrusted input: length-capped (100 / 400) and wrapped/delimited in the prompt.
 
 ## Config
 `quiz.model` (default `google/gemini-2.5-flash`), `quiz.max-attempts=3`, `quiz.temperature=0.9`.
-
-## Open questions
-- Add topic safety/length limit on input?

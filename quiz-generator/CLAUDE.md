@@ -6,8 +6,8 @@ Java 21, Spring Boot 4.1.0, Spring AI 2.0.0, Maven. Uses the plain `spring-ai-op
 
 ## Commands
 - `./mvnw spring-boot:run` -> http://localhost:8080 (port from `PORT`, default 8080)
-- `./mvnw test` (10 tests; no network or key needed)
-- Only endpoint: `POST /api/quiz`, header `X-OpenRouter-Key`, body `{topic, difficulty: EASY|MEDIUM|HARD, model?}` -> `{topic, questions[10]}` incl. `correctIndex` + `explanation`
+- `./mvnw test` (16 tests; no network or key needed)
+- Only endpoint: `POST /api/quiz`, header `X-OpenRouter-Key`, body `{topic, scope?, difficulty: EASY|MEDIUM|HARD, model?}` -> `{topic, questions[10]}` incl. `correctIndex` + `explanation`. `scope` = optional hint (max 400 chars) listing areas of the topic
 
 ## Layout (`com.example.quizgenerator`)
 - `QuizController`: header check (401), maps `QuizException` to `{error}` + status
@@ -20,6 +20,7 @@ Java 21, Spring Boot 4.1.0, Spring AI 2.0.0, Maven. Uses the plain `spring-ai-op
   - `dom.js` helpers (`$`, `el`, option row, mark answer)
   - `favorites-store.js` data layer: validation (`clean`), id hash, localStorage, `subscribe()`; no DOM
   - `notices.js` message + storage-unavailable banners
+  - `topics.js` topic picker: reads `static/topics.json` (6 umbrella `{label, hint}` entries + "Other"/free text); curated pick sends label as `topic` and hint as `scope`; falls back to free text if the JSON fails to load
   - `quiz-view.js` generate form, render, grading, star buttons
   - `saved-view.js` Saved tab: filter, reveal-to-practice cards, remove
   - `favorites-io.js` export/import JSON
@@ -30,7 +31,9 @@ Java 21, Spring Boot 4.1.0, Spring AI 2.0.0, Maven. Uses the plain `spring-ai-op
 - UI keeps the API key in page memory only: never in localStorage/sessionStorage/cookies, never in the favorites export. Render model/imported text via `textContent`, never `innerHTML`. No third-party/CDN scripts.
 - Favorites (starred questions) are client-only: localStorage `quiz.favorites.v1` (max 200) + Export/Import JSON. No server endpoint or DB. Import is untrusted: `clean()` in `favorites-store.js` validates every item and recomputes `id`; all storage access in try/catch with in-memory fallback. See `spec.md` "Favorites".
 - Retry only format failures. Provider errors (401/402/429, IO) fail fast, mapped in `QuizGenerator.map`.
-- Questions test concepts/trade-offs, not annotation/syntax/version trivia (prompt rule).
+- Questions test concepts/trade-offs, not annotation/syntax/version trivia (prompt rule). Short code-reasoning (what does this print, object counts, equality) IS allowed: it goes in a SCENARIO's `scenario` (max ~8 lines, `\n` breaks); UI shows scenario with `pre-wrap`, monospace when multi-line. No separate `code` field.
+- `topic` (100) and `scope` (400) are untrusted: length-capped, delimited in the prompt (`<topic>`, `<scope>`). The `<scope>` mention and the coverage rule (spread across areas, none more than twice) appear only when a scope is sent.
+- To change topics edit `static/topics.json` only (max ~6 labels, hint <= 400 chars each).
 - Grading is client-side by design; no token/grade endpoint.
 
 ## Config (`application.yml`)
