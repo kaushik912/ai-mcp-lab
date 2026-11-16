@@ -3,6 +3,7 @@
   :root { --bg:#16161a; --fg:#ececf1; --muted:#9a9aa5; --line:#33333b; --accent:#7ea2ff; --ok:#4cc275; --bad:#ff8a80; }
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 system-ui, sans-serif; }
 main { max-width:720px; margin:0 auto; padding:16px; }
 h1 { font-size:1.4rem; }
@@ -25,3 +26,19 @@ button:disabled { opacity:.6; cursor:wait; }
 .opt.wrong { border-color:var(--bad); }
 .explain { margin-top:8px; font-size:.95rem; color:var(--muted); }
 #score { font-size:1.2rem; font-weight:700; text-align:center; }
+
+/* tabs, favorites */
+.tabs { display:flex; gap:8px; margin:8px 0; }
+button.tab { margin:0; flex:1; background:transparent; color:var(--fg); border:1px solid var(--line); }
+button.tab[aria-selected="true"] { background:var(--accent); color:#fff; border-color:var(--accent); }
+#fav-notice, #fav-msg { margin:4px 0; min-height:0; }
+#fav-notice:empty, #fav-msg:empty { display:none; }
+#fav-msg.error, #fav-notice { color:var(--bad); }
+.qhead { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+button.star { margin:0; width:auto; padding:4px 10px; background:transparent; color:var(--accent);
+  font-size:1.5rem; line-height:1; min-width:44px; min-height:44px; }
+button.small { margin:0; width:auto; padding:8px 14px; font-size:.9rem; }
+button.danger { background:transparent; color:var(--bad); border:1px solid var(--bad); }
+.q > button.small { margin-top:10px; }
+.toolbar { display:flex; gap:8px; margin:12px 0; }
+.toolbar button.small { flex:1; }

@@ -10,6 +10,14 @@
   <main>
     <h1>Quiz Generator</h1>
 
+    <nav class="tabs" aria-label="Views">
+      <button id="tab-new" class="tab" type="button" aria-selected="true">New quiz</button>
+      <button id="tab-saved" class="tab" type="button" aria-selected="false">Saved (0)</button>
+    </nav>
+    <p id="fav-notice" class="error" role="status"></p>
+    <p id="fav-msg" class="hint" role="status"></p>
+
+    <div id="view-new">
     <form id="form" autocomplete="on">
       <label>OpenRouter API key
         <input id="key" name="password" type="password" autocomplete="current-password" required>
@@ -37,6 +45,19 @@
       <button id="submit" type="button">Submit answers</button>
       <p id="score"></p>
     </section>
+    </div>
+
+    <div id="view-saved" hidden>
+      <label>Topic
+        <select id="topic-filter"><option value="">All topics</option></select>
+      </label>
+      <div class="toolbar">
+        <button id="export" class="small" type="button">Export JSON</button>
+        <button id="import" class="small" type="button">Import JSON</button>
+        <input id="import-file" type="file" accept="application/json,.json" hidden>
+      </div>
+      <div id="saved-list"></div>
+    </div>
   </main>
   <script src="app.js"></script>
 </body>

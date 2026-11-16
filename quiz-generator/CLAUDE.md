@@ -16,11 +16,12 @@ Java 21, Spring Boot 4.1.0, Spring AI 2.0.0, Maven. Uses the plain `spring-ai-op
 - `QuizPromptBuilder`: prompt text; appends validator errors on retry
 - `QuizValidator`: strict format rules, returns error strings
 - `QuizLlm` (seam) / `OpenRouterLlm`: builds a fresh `OpenAiChatModel` per call with the caller's key, base-url `https://openrouter.ai/api/v1`
-- `static/`: `index.html`, `app.js`, `style.css` (vanilla JS, no libs)
+- `static/`: `index.html`, `app.js`, `style.css` (vanilla JS, no libs). `app.js` holds quiz UI + favorites (star toggle, Saved tab with reveal-to-practice, export/import)
 
 ## Rules to keep
 - Never store, log or echo the API key (not in logs, errors, exceptions). Server has no LLM key.
-- UI keeps the key in page memory only: no localStorage/sessionStorage/cookies. Render model output via `textContent`, never `innerHTML`. No third-party/CDN scripts.
+- UI keeps the API key in page memory only: never in localStorage/sessionStorage/cookies, never in the favorites export. Render model/imported text via `textContent`, never `innerHTML`. No third-party/CDN scripts.
+- Favorites (starred questions) are client-only: localStorage `quiz.favorites.v1` (max 200) + Export/Import JSON. No server endpoint or DB. Import is untrusted: `clean()` in `app.js` validates every item and recomputes `id`; all storage access in try/catch with in-memory fallback. See `spec.md` "Favorites".
 - Retry only format failures. Provider errors (401/402/429, IO) fail fast, mapped in `QuizGenerator.map`.
 - Questions test concepts/trade-offs, not annotation/syntax/version trivia (prompt rule).
 - Grading is client-side by design; no token/grade endpoint.
@@ -32,3 +33,6 @@ Java 21, Spring Boot 4.1.0, Spring AI 2.0.0, Maven. Uses the plain `spring-ai-op
 - Dev sandbox blocks openrouter.ai (proxy 403), so a real model call is unverified; tests use a fake `QuizLlm`.
 - Provider error mapping matches on status codes in the exception message (`401`/`402`/`429`); revisit if Spring AI changes message format.
 - Not yet built/tested: Docker image, Cloud Run deploy.
+- Frontend has no JS test harness in the repo. Favorites were checked with an ad-hoc Playwright script (mocked `/api/quiz`); run the app on a spare port (`PORT=8099 ./mvnw spring-boot:run`) if 8080 is busy.
+- `spring-boot:run` serves `target/classes`: restart the app after editing `static/` files.
+- Idea later: Firebase sync for favorites.
