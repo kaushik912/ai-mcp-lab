@@ -49,10 +49,10 @@ Single static page (`resources/static/index.html`, vanilla JS): key input, topic
 
 ## Security (BYOK: bring your own key)
 - Server holds NO OpenRouter key; owner's credits can never be burned. Each user supplies their own OpenRouter key.
-- UI: key input field, stored in browser localStorage (with "forget key" button); sent per request in `X-OpenRouter-Key` header over HTTPS. UI warns: use a dedicated key with a credit limit.
+- UI: `type=password` key input (autocomplete allowed so the password manager can fill it). Key lives in page memory only: no localStorage/sessionStorage/cookies; gone on reload or leaving. Sent per request in `X-OpenRouter-Key` header over HTTPS. UI hint: use a dedicated key with a credit limit.
 - Server uses the key for that request only: build per-request Spring AI `OpenAiApi`/`ChatClient` with the supplied key; never store, never log (mask headers in logs, no request-body/header logging), never echo in errors.
 - Invalid/missing key -> 401 with generic message (OpenRouter 401/402 mapped to clear errors, e.g. out of credits).
-- Key is in localStorage: render model output with `textContent` (no innerHTML), no third-party scripts.
+- Render model output with `textContent` (no innerHTML), no third-party scripts.
 - Light limits: topic length cap (~100 chars), Cloud Run max-instances cap. No rate limiter for now.
 - Topic is untrusted input: wrapped/delimited in prompt.
 
