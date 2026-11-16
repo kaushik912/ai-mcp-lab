@@ -6,6 +6,7 @@ Java 21, Spring Boot 4.1.0, Spring AI 2.0.0, Maven. Uses the plain `spring-ai-op
 
 ## Commands
 - `./mvnw spring-boot:run` -> http://localhost:8080 (port from `PORT`, default 8080)
+- `make` lists shortcuts: `make run`, `make test`, `make e2e-install`, `make e2e`, `make e2e-headed`, `make e2e-report`, `make check`
 - `./mvnw test` (16 tests; no network or key needed)
 - Only endpoint: `POST /api/quiz`, header `X-OpenRouter-Key`, body `{topic, scope?, difficulty: EASY|MEDIUM|HARD, model?}` -> `{topic, questions[10]}` incl. `correctIndex` + `explanation`. `scope` = optional hint (max 400 chars) listing areas of the topic
 
@@ -43,6 +44,8 @@ Java 21, Spring Boot 4.1.0, Spring AI 2.0.0, Maven. Uses the plain `spring-ai-op
 - Dev sandbox blocks openrouter.ai (proxy 403), so a real model call is unverified; tests use a fake `QuizLlm`.
 - Provider error mapping matches on status codes in the exception message (`401`/`402`/`429`); revisit if Spring AI changes message format.
 - Not yet built/tested: Docker image, Cloud Run deploy.
-- Frontend has no JS test harness in the repo. Favorites were checked with an ad-hoc Playwright script (mocked `/api/quiz`); run the app on a spare port (`PORT=8099 ./mvnw spring-boot:run`) if 8080 is busy.
+- Browser tests are Playwright for **Node** in `e2e/` (separate from Maven). `make e2e-install` once, then `make e2e`; it starts the app itself on port 8099 (`E2E_PORT`), never reuses a running server, and fakes `POST /api/quiz` in the browser (no key/network). Only `e2e/tests/api.spec.js` hits the real server. See `e2e/README.md`. Run `make check` for Java + browser tests.
+- Keep e2e tests short, one user story each, sentence-style names, shared code in `e2e/tests/helpers.js` (the owner finds Playwright hard to read).
+- UI changes need an e2e test update; a deliberately broken change should make a test fail (verified once with the 200-favorites cap).
 - `spring-boot:run` serves `target/classes`: restart the app after editing `static/` files.
 - Idea later: Firebase sync for favorites.

@@ -105,5 +105,16 @@ Out of scope (maybe later): multi-select, per-topic hints for individual subtopi
 - Light limits: topic length cap (~100 chars), Cloud Run max-instances cap. No rate limiter for now.
 - Topic and scope are untrusted input: length-capped (100 / 400) and wrapped/delimited in the prompt.
 
+## Testing
+- **Java unit tests** (`make test` / `./mvnw test`): validator, retry loop, prompt, controller. Fast, no browser, no key.
+- **Browser e2e tests** (`make e2e`): Playwright for **Node** in `e2e/` (kept separate from Maven; Maven build is untouched). Drives real Chromium against the real app.
+  - `playwright.config.js` starts the app itself via `./mvnw spring-boot:run` on **port 8099** (`E2E_PORT`), never reuses an existing server, so it cannot clash with the app running on 8080.
+  - Model is faked in the browser: the tests intercept `POST /api/quiz` and return a canned quiz (no key, no network, no cost). A few API tests hit the real server for validation errors (401/400).
+  - Fresh browser context per test = empty localStorage.
+  - Style: ~20 short tests, one user story each, named as sentences; shared helpers in `e2e/tests/helpers.js`; `e2e/README.md` explains how to read them.
+  - Covers: topic picker, generate/grade, error display, code-snippet rendering, text-not-HTML safety, key never stored, favorites (star/persist/saved tab/remove/export/import/cap/blocked or corrupt storage), API validation.
+- **Makefile** targets: `help`, `run`, `test`, `e2e-install` (one-time npm + Chromium), `e2e`, `e2e-headed`, `e2e-report`, `check` (test + e2e).
+- Not covered: real model output quality (needs a real key; manual).
+
 ## Config
 `quiz.model` (default `google/gemini-2.5-flash`), `quiz.max-attempts=3`, `quiz.temperature=0.9`.
