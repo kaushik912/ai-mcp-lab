@@ -1,0 +1,11 @@
+{
+  "name": "quiz-generator-e2e",
+  "private": true,
+  "description": "Browser (Playwright) tests for quiz-generator. Run with `make e2e` from the parent folder.",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1"
+  }
+}

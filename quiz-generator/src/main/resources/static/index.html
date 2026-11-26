@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quiz Generator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>Quiz Generator</h1>
+
+    <nav class="tabs" aria-label="Views">
+      <button id="tab-new" class="tab" type="button" aria-selected="true">New quiz</button>
+      <button id="tab-saved" class="tab" type="button" aria-selected="false">Saved (0)</button>
+    </nav>
+    <p id="fav-notice" class="error" role="status"></p>
+    <p id="fav-msg" class="hint" role="status"></p>
+
+    <div id="view-new">
+    <form id="form" autocomplete="on">
+      <label>OpenRouter API key
+        <input id="key" name="password" type="password" autocomplete="current-password" required>
+      </label>
+      <p class="hint">Kept in this page only; gone when you leave. Use a key with a credit limit.</p>
+
+      <label>Topic
+        <select id="topic-select"></select>
+      </label>
+      <input id="topic" type="text" maxlength="100" aria-label="Custom topic"
+             placeholder="Type your own topic, e.g. Kafka consumer groups" hidden>
+
+      <label>Difficulty
+        <select id="difficulty">
+          <option>EASY</option>
+          <option selected>MEDIUM</option>
+          <option>HARD</option>
+        </select>
+      </label>
+
+      <button id="generate" type="submit">Generate 10 questions</button>
+    </form>
+
+    <p id="status" role="status"></p>
+    <section id="quiz" hidden>
+      <div id="questions"></div>
+      <button id="submit" type="button">Submit answers</button>
+      <p id="score"></p>
+    </section>
+    </div>
+
+    <div id="view-saved" hidden>
+      <label>Topic
+        <select id="topic-filter"><option value="">All topics</option></select>
+      </label>
+      <div class="toolbar">
+        <button id="export" class="small" type="button">Export JSON</button>
+        <button id="import" class="small" type="button">Import JSON</button>
+        <input id="import-file" type="file" accept="application/json,.json" hidden>
+      </div>
+      <div id="saved-list"></div>
+    </div>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
