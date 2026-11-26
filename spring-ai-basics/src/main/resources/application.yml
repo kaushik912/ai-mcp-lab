@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: spring-ai-basics
+  ai:
+    openai:
+      # OpenRouter speaks the OpenAI API, so the OpenAI starter works against it.
+      base-url: https://openrouter.ai/api/v1
+      api-key: ${OPENROUTER_API_KEY:}
+      chat:
+        model: ${OPENROUTER_MODEL:~deepseek/deepseek-v4-flash-latest}
+      embedding:
+        model: openai/text-embedding-3-small
+
+# Exposes Spring AI's Micrometer metrics, e.g. gen_ai.client.token.usage
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
