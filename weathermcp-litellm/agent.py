@@ -25,8 +25,13 @@ from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 
 # ---- config (all swappable via env -> no vendor lock-in) --------------------
-MODEL = os.getenv("MODEL", "anthropic/claude-sonnet-5")
+# BYOK: the visitor's OpenRouter key arrives per request in the X-OpenRouter-Key
+# header and is passed straight to LiteLLM. It is never stored or logged.
+MODEL = os.getenv("MODEL", "openrouter/~deepseek/deepseek-v4-flash-latest")
 # e.g. MODEL="ollama/llama3.1"  or  "openrouter/meta-llama/llama-3.1-8b-instruct"
+MAX_MESSAGE_CHARS = 500
+
+litellm.suppress_debug_info = True  # keep provider debug dumps out of logs/errors
 
 BASE_DIR = Path(__file__).parent
 STATIC_DIR = BASE_DIR / "static"
@@ -95,7 +100,8 @@ SYSTEM_PROMPT = (
 )
 
 
-async def run_agent(user_msg: str, max_steps: int = 4):
+async def run_agent(user_msg: str, api_key: str | None, max_steps: int = 4):
+    """max_steps also bounds LLM calls per question (max_steps + 1), protecting the caller's key."""
     steps = []
     seen: dict[str, str] = {}  # cache tool results; also used to detect loops
 
@@ -109,7 +115,7 @@ async def run_agent(user_msg: str, max_steps: int = 4):
 
         for _ in range(max_steps):
             resp = await litellm.acompletion(
-                model=MODEL, messages=messages,
+                model=MODEL, messages=messages, api_key=api_key,
                 tools=tools, tool_choice="auto",
             )
             msg = resp.choices[0].message
@@ -155,7 +161,7 @@ async def run_agent(user_msg: str, max_steps: int = 4):
         messages.append({"role": "user", "content":
             "Using the information above, answer my original question now "
             "in plain text. Do not call any tools."})
-        resp = await litellm.acompletion(model=MODEL, messages=messages)
+        resp = await litellm.acompletion(model=MODEL, messages=messages, api_key=api_key)
         return resp.choices[0].message.content or "(no answer produced)", steps
 
 
@@ -169,15 +175,51 @@ def _leaf_errors(e: BaseException):
     return [f"{type(e).__name__}: {e}"]
 
 
+def _error(status: int, text: str):
+    return JSONResponse({"answer": "Error: " + text, "steps": []}, status_code=status)
+
+
+def _first_leaf(e: BaseException) -> BaseException:
+    while isinstance(e, BaseExceptionGroup) and e.exceptions:
+        e = e.exceptions[0]
+    return e
+
+
+def _public_error(e: BaseException, api_key: str | None) -> tuple[int, str]:
+    """Map failures to a safe message: known LLM errors get a friendly text; anything
+    else gets the readable cause, with the caller's key scrubbed just in case."""
+    leaf = _first_leaf(e)
+    if isinstance(leaf, litellm.AuthenticationError):
+        return 401, "invalid OpenRouter API key"
+    if isinstance(leaf, litellm.RateLimitError):
+        return 429, "rate limited by the model provider (check your OpenRouter credits/limits)"
+    if isinstance(leaf, litellm.APIError):
+        return 502, "the model provider returned an error, try again"
+    text = " | ".join(_leaf_errors(e))
+    if api_key:
+        text = text.replace(api_key, "***")
+    return 500, text
+
+
 @app.post("/chat")
 async def chat(req: Request):
+    api_key = (req.headers.get("x-openrouter-key") or "").strip()
+    if not api_key and MODEL.startswith("openrouter/"):
+        return _error(401, "X-OpenRouter-Key header is required (bring your own OpenRouter key)")
+
     body = await req.json()
+    message = (body.get("message") or "").strip()
+    if not message:
+        return _error(400, "message is empty")
+    if len(message) > MAX_MESSAGE_CHARS:
+        return _error(400, f"message too long (max {MAX_MESSAGE_CHARS} characters)")
+
     try:
-        answer, steps = await run_agent(body.get("message", ""))
+        answer, steps = await run_agent(message, api_key or None)
         return JSONResponse({"answer": answer, "steps": steps})
-    except BaseException as e:  # surface the real cause to the UI during the demo
-        return JSONResponse({"answer": "Error: " + " | ".join(_leaf_errors(e)),
-                             "steps": []}, status_code=500)
+    except BaseException as e:
+        status, text = _public_error(e, api_key)
+        return _error(status, text)
 
 
 @app.get("/")
