@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Weather Agent</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <h2>🌤️ Weather Agent <small>(LiteLLM + MCP)</small></h2>
+  <div class="bar key-bar">
+    <input id="key" type="password" placeholder="Your OpenRouter API key (sk-or-…)" autocomplete="off">
+  </div>
+  <p class="hint">
+    Bring your own key: it stays in this tab's memory and is sent only with your question.
+    Get a free one at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a>.
+  </p>
+  <div class="bar">
+    <input id="q" placeholder="how is the weather today?" maxlength="500" autofocus>
+    <button id="ask">Ask</button>
+  </div>
+  <div id="log"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

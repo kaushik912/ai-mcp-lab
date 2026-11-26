@@ -6,6 +6,8 @@ body {
 }
 h2 small { color: #888; font-weight: 400; }
 .bar { display: flex; gap: 8px; }
+.key-bar { margin-bottom: 4px; }
+.hint { font-size: 12px; color: #666; margin: 0 0 12px; }
 input {
   flex: 1;
   padding: 10px;
