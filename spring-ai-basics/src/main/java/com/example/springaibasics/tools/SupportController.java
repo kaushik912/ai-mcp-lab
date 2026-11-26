@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Concept: the tool loop. The model may request orderStatus / requestRefund; Spring AI
  * runs our methods and sends results back until the model answers.
+ * The loop is ToolCallingAdvisor (a recursive advisor). Spring Boot auto-registers it on
+ * the injected ChatClient.Builder, so we only pass .tools(...). Opt out per call with
+ * AdvisorParams.toolCallingAdvisorAutoRegister(false) to drive the loop yourself.
  * The number of tool calls per request is capped in ToolsConfig.
  */
 @RestController
