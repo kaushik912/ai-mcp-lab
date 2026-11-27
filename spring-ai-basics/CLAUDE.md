@@ -9,7 +9,7 @@ Java 17, Spring Boot 4.1.1, Spring AI 2.0.1 (`spring-ai-starter-model-openai`, `
 - README has curl commands per concept
 
 ## Config
-- Env `OPENROUTER_API_KEY` (required to run; also enables `RagGoldenEvalTest`), `OPENROUTER_MODEL` (default `deepseek/deepseek-v4.1-flash`; alternative `qwen/qwen3.7-flash`)
+- Env `OPENROUTER_API_KEY` (required to run; also enables the `Rag*EvalTest`s; judge model `qwen/qwen3.7-flash` is hardcoded in `RagJudgeEvalTest`), `OPENROUTER_MODEL` (default `deepseek/deepseek-v4.1-flash`; alternative `qwen/qwen3.7-flash`)
 - Embeddings: `openai/text-embedding-3-small` via OpenRouter
 - Spring AI 2.x properties have no `.options` segment: `spring.ai.openai.chat.model`, `spring.ai.openai.embedding.model`
 
@@ -17,3 +17,4 @@ Java 17, Spring Boot 4.1.1, Spring AI 2.0.1 (`spring-ai-starter-model-openai`, `
 - Fake login: `X-User` header (alice, bob = acme; carol = globex) in `common/CurrentUser`
 - SimpleVectorStore is in-memory; startup re-embeds 5 docs (needs network + key)
 - `ChatClient.Builder` is prototype-scoped, so each class builds its own client with its own default advisors
+- Evaluators (`FactCheckingEvaluator`, `RelevancyEvaluator`) pass only on a reply of exactly `yes` (case-insensitive, stripped); prompt for one bare word

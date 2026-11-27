@@ -52,12 +52,7 @@ public class RagService {
 
 	/** tenantId is a parameter so tests can call this directly; the controller passes the logged-in user's tenant. */
 	public Answer ask(String tenantId, String question) {
-		List<Document> hits = vectorStore.similaritySearch(SearchRequest.builder()
-				.query(question)
-				.topK(3)                                  // few chunks: less cost, less noise
-				.similarityThreshold(0.3)                 // drop weak matches
-				.filterExpression(new FilterExpressionBuilder().eq("tenantId", tenantId).build())
-				.build());
+		List<Document> hits = retrieve(tenantId, question);
 
 		if (hits.isEmpty()) {
 			return new Answer(I_DONT_KNOW, List.of());   // decided in code: no LLM call, zero tokens
@@ -77,5 +72,15 @@ public class RagService {
 				.map(d -> String.valueOf(d.getMetadata().get("source")))
 				.collect(Collectors.toSet());
 		return new Answer(answer.answer(), CitationGuard.keepRetrieved(answer.sources(), retrieved));
+	}
+
+	/** Retrieval step on its own (no chat model), so evals can test it separately from generation. */
+	List<Document> retrieve(String tenantId, String question) {
+		return vectorStore.similaritySearch(SearchRequest.builder()
+				.query(question)
+				.topK(3)                                  // few chunks: less cost, less noise
+				.similarityThreshold(0.3)                 // drop weak matches
+				.filterExpression(new FilterExpressionBuilder().eq("tenantId", tenantId).build())
+				.build());
 	}
 }
