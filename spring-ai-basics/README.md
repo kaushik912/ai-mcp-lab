@@ -103,5 +103,6 @@ curl localhost:8080/actuator/metrics/gen_ai.client.token.usage
 
 ## Deliberately left out (to stay basic)
 
-- Real auth (Spring Security), persistent memory (JDBC/Redis), a real vector DB (pgvector), chunking of large files, timeouts/retries/fallbacks, streaming, async jobs.
+- Real auth (Spring Security), persistent memory (JDBC/Redis), a real vector DB (pgvector), chunking of large files, fallback models/circuit breakers, streaming, async jobs.
+- Not left out, just default: the OpenAI SDK retries 408/409/429/5xx and connection errors with exponential backoff (tune via `spring.ai.openai.max-retries` / `timeout`).
 - MCP: see the sibling projects `mcp-quote-server` and `mcp-quote-client`.
