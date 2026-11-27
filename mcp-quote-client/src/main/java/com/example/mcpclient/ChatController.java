@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Concrete model beans are injected by type (OllamaChatModel,
  * AnthropicChatModel, OpenAiChatModel) — that sidesteps the ChatClient.Builder
  * ambiguity you'd hit if you injected the builder while multiple chat models
- * are on the classpath. Gemini rides OpenAiChatModel via Google's
+ * are on the classpath. OpenRouter rides OpenAiChatModel via its
  * OpenAI-compatible endpoint (see application.properties spring.ai.openai.*).
  *
  * `mcpTools` is the ToolCallbackProvider auto-created by the MCP client
@@ -32,7 +32,7 @@ public class ChatController {
 
     private final ChatClient ollamaClient;
     private final ChatClient anthropicClient;
-    private final ChatClient geminiClient;
+    private final ChatClient openRouterClient;
     private final ToolCallbackProvider mcpTools;
 
     public ChatController(OllamaChatModel ollamaModel,
@@ -47,7 +47,7 @@ public class ChatController {
         this.anthropicClient = ChatClient.builder(anthropicModel)
                 .defaultToolCallbacks(mcpTools)
                 .build();
-        this.geminiClient = ChatClient.builder(openAiModel)
+        this.openRouterClient = ChatClient.builder(openAiModel)
                 .defaultToolCallbacks(mcpTools)
                 .build();
     }
@@ -62,9 +62,9 @@ public class ChatController {
         return anthropicClient.prompt().user(q).call().content();
     }
 
-    @GetMapping("/chat/gemini")
-    public String gemini(@RequestParam String q) {
-        return geminiClient.prompt().user(q).call().content();
+    @GetMapping("/chat/openrouter")
+    public String openRouter(@RequestParam String q) {
+        return openRouterClient.prompt().user(q).call().content();
     }
 
     /** Debug: what tools were discovered from the MCP server(s) at startup? */

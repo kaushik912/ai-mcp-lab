@@ -18,7 +18,7 @@ spring:
       api-key: ${OPENROUTER_API_KEY:}
       chat:
         options:
-          model: ${OPENROUTER_MODEL:openai/gpt-4o-mini}
+          model: ${OPENROUTER_MODEL:deepseek/deepseek-v4.1-flash}
 
 logging:
   level:

@@ -15,7 +15,7 @@ Java 17, Spring Boot 4.1.1, Spring AI 2.0.1 (mcp-client-webflux, openai starter)
 - `GET /accounts/count-by-person-id/{personId}`, `/accounts/balance-by-person-id/{personId}`
 
 ## Config
-- Env: `OPENROUTER_API_KEY` (empty default), `OPENROUTER_MODEL` (default openai/gpt-4o-mini)
+- Env: `OPENROUTER_API_KEY` (empty default), `OPENROUTER_MODEL` (default deepseek/deepseek-v4.1-flash)
 - base-url https://openrouter.ai/api/v1
 
 ## Layout (`com.example.sampleclient`)

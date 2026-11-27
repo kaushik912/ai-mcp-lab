@@ -7,7 +7,7 @@ spring:
 
 quiz:
   base-url: https://openrouter.ai/api/v1
-  model: google/gemini-2.5-flash
+  model: deepseek/deepseek-v4.1-flash
   max-attempts: 3
   temperature: 0.9
   timeout: 90s

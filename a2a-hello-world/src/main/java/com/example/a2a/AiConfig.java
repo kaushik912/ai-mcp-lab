@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 /**
- * Selects an LLM provider via the {@code a2a.llm.provider} property (default
- * "ollama") and builds one ChatClient per role. Spring injects every
+ * Selects an LLM provider via the {@code a2a.llm.provider} property
+ * (application.properties sets "openai" -> OpenRouter) and builds one ChatClient per role. Spring injects every
  * {@link ChatModelFactory} on the classpath; we pick the one whose
  * {@link ChatModelFactory#provider()} matches the configured value.
  *

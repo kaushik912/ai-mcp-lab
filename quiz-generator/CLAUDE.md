@@ -38,7 +38,7 @@ Java 21, Spring Boot 4.1.0, Spring AI 2.0.0, Maven. Uses the plain `spring-ai-op
 - Grading is client-side by design; no token/grade endpoint.
 
 ## Config (`application.yml`)
-`quiz.model` (google/gemini-2.5-flash), `quiz.max-attempts` 3, `quiz.temperature` 0.9, `quiz.timeout` 90s, `quiz.base-url`.
+`quiz.model` (deepseek/deepseek-v4.1-flash), `quiz.max-attempts` 3, `quiz.temperature` 0.9, `quiz.timeout` 90s, `quiz.base-url`.
 
 ## Gotchas
 - Dev sandbox blocks openrouter.ai (proxy 403), so a real model call is unverified; tests use a fake `QuizLlm`.

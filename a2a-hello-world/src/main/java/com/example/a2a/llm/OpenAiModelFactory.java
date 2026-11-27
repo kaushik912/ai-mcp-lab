@@ -7,17 +7,23 @@ import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-/** OpenAI (or OpenAI-compatible) models. Activated when a2a.llm.provider=openai. */
+/**
+ * OpenAI-compatible models (OpenRouter by default). Activated when a2a.llm.provider=openai.
+ * Spring AI 1.0 appends /v1/chat/completions itself, so base-url must NOT end in /v1.
+ */
 @Component
 public class OpenAiModelFactory implements ChatModelFactory {
 
     private final String apiKey;
+    private final String baseUrl;
     private final String model;
 
     public OpenAiModelFactory(
             @Value("${spring.ai.openai.api-key:}") String apiKey,
-            @Value("${a2a.llm.openai.model:gpt-4o-mini}") String model) {
+            @Value("${a2a.llm.openai.base-url:https://openrouter.ai/api}") String baseUrl,
+            @Value("${a2a.llm.openai.model:deepseek/deepseek-v4.1-flash}") String model) {
         this.apiKey = apiKey;
+        this.baseUrl = baseUrl;
         this.model = model;
     }
 
@@ -28,7 +34,7 @@ public class OpenAiModelFactory implements ChatModelFactory {
 
     @Override
     public ChatModel create(double temperature) {
-        OpenAiApi api = OpenAiApi.builder().apiKey(apiKey).build();
+        OpenAiApi api = OpenAiApi.builder().baseUrl(baseUrl).apiKey(apiKey).build();
         return OpenAiChatModel.builder()
             .openAiApi(api)
             .defaultOptions(OpenAiChatOptions.builder()

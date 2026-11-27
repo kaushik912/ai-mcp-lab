@@ -19,4 +19,4 @@ These notes were originally written using PyCharm Community Edition. Any IDE wit
 
 1. Generate an API key at [Google AI Studio](https://aistudio.google.com/apikey) — it has a free tier, no credit card required.
 2. Put it in `.env` as `GEMINI_API_KEY` (see repo root `.env.example`).
-3. Most examples default to Gemini (`gemini-flash-lite-latest` for chat, `gemini-embedding-001` for embeddings) since it needs no local model download and no paid credits to try.
+3. Examples default to OpenRouter (`deepseek/deepseek-v4.1-flash` for chat, `qwen/qwen3-embedding-8b` for embeddings; set `OPENROUTER_API_KEY`). Change defaults in `common/config.py`, or set `LLL_DEFAULT_PROVIDER=gemini|openai`.

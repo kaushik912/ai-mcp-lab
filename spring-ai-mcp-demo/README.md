@@ -17,7 +17,7 @@ mvn -f sample-client/pom.xml spring-boot:run          # port 8080
 
 Swagger UI: `http://localhost:8080/swagger-ui.html`. OpenAPI spec: `http://localhost:8080/v3/api-docs`.
 
-`OPENROUTER_MODEL` overrides the default chat model (`openai/gpt-4o-mini`) used against
+`OPENROUTER_MODEL` overrides the default chat model (`deepseek/deepseek-v4.1-flash`) used against
 OpenRouter's OpenAI-compatible API.
 
 ## Sample requests
