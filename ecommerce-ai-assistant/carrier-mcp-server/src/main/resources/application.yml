@@ -1,0 +1,17 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: carrier-mcp-server
+  ai:
+    mcp:
+      server:
+        name: carrier-logistics
+        version: 1.0.0
+        protocol: STREAMABLE
+        type: SYNC
+
+logging:
+  level:
+    com.aicommerce.carrier: INFO

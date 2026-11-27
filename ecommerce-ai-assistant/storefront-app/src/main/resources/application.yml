@@ -1,0 +1,49 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: storefront-app
+  datasource:
+    url: jdbc:h2:mem:storefront;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+  thymeleaf:
+    cache: false
+  ai:
+    openai:
+      # OpenRouter only (OpenAI-compatible API). Set: export OPENROUTER_API_KEY=sk-or-...
+      # Spring AI 2.x: no ".options" segment in property names.
+      base-url: https://openrouter.ai/api/v1
+      api-key: ${OPENROUTER_API_KEY:demo-key-not-set}
+      chat:
+        model: ${OPENROUTER_MODEL:deepseek/deepseek-v4.1-flash}
+        temperature: 0.2
+      embedding:
+        model: ${OPENROUTER_EMBEDDING_MODEL:openai/text-embedding-3-small}
+    mcp:
+      client:
+        type: SYNC
+        name: storefront-app
+        request-timeout: 10s
+        # Don't connect at startup: the storefront must boot even if carrier-mcp-server is down.
+        initialized: false
+        streamable-http:
+          connections:
+            carrier:
+              url: ${CARRIER_MCP_URL:http://localhost:8081}
+              endpoint: /mcp
+
+app:
+  rag:
+    ingest-on-startup: true      # skipped automatically when no API key is set
+    top-k: 4                     # chunks added to each prompt
+    similarity-threshold: 0.3    # drop weak matches (cosine, 0..1)
+
+logging:
+  level:
+    com.aicommerce: INFO
