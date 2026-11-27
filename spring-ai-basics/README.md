@@ -22,7 +22,7 @@ export OPENROUTER_API_KEY=sk-or-...
 ./mvnw spring-boot:run          # port 8080
 ```
 
-Chat model: `~deepseek/deepseek-v4-flash-latest` (override with `OPENROUTER_MODEL`). Embeddings: `openai/text-embedding-3-small`, both through OpenRouter. Startup embeds 5 tiny documents (a fraction of a cent).
+Chat model: `deepseek/deepseek-v4.1-flash` (override with `OPENROUTER_MODEL`). Embeddings: `openai/text-embedding-3-small`, both through OpenRouter. Startup embeds 5 tiny documents (a fraction of a cent).
 
 ## Try it
 

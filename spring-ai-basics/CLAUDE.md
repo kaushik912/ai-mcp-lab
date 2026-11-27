@@ -9,7 +9,7 @@ Java 17, Spring Boot 4.1.1, Spring AI 2.0.1 (`spring-ai-starter-model-openai`, `
 - README has curl commands per concept
 
 ## Config
-- Env `OPENROUTER_API_KEY` (required to run; also enables `RagGoldenEvalTest`), `OPENROUTER_MODEL` (default `~deepseek/deepseek-v4-flash-latest`; without `~` OpenRouter rejects it)
+- Env `OPENROUTER_API_KEY` (required to run; also enables `RagGoldenEvalTest`), `OPENROUTER_MODEL` (default `deepseek/deepseek-v4.1-flash`; alternative `qwen/qwen3.7-flash`)
 - Embeddings: `openai/text-embedding-3-small` via OpenRouter
 - Spring AI 2.x properties have no `.options` segment: `spring.ai.openai.chat.model`, `spring.ai.openai.embedding.model`
 
