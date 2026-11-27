@@ -10,7 +10,7 @@ One small Spring Boot app. Each package demonstrates one Spring AI idea with one
 | `rag` | Ingest with metadata, tenant filter, topK + threshold, "I don't know" without an LLM call, labelled context, citation check | `POST /rag/ask` |
 | `tools` | `@Tool` methods, identity via `toolContext`, ownership check, propose-only refund, idempotency, safe errors, call cap | `POST /tools/support` |
 | `workflow` | Fixed steps chosen by code (classify, summarise, `switch` routes): a workflow, not an agent | `POST /workflow/triage` |
-| tests | Deterministic tests (no LLM) + a golden-set eval with a pass rate | `./mvnw test` |
+| tests | Deterministic tests (no LLM), retrieval eval, golden-set eval, LLM-as-judge eval (pass rates) | `./mvnw test` |
 | actuator | Token usage metric from Spring AI's Micrometer observations | `GET /actuator/metrics/gen_ai.client.token.usage` |
 
 **Login is faked** with an `X-User` header (`alice` and `bob` are tenant `acme`, `carol` is `globex`). See `common/CurrentUser`: in a real app this is Spring Security's principal, never a client header.
@@ -85,9 +85,23 @@ curl localhost:8080/actuator/metrics/gen_ai.client.token.usage
 ./mvnw test
 ```
 - Always run, no LLM: `RefundPolicyTest`, `OrderToolsTest`, `CitationGuardTest`, `TriageRoutingTest`. The safety rules hold whatever the model does.
-- Only with `OPENROUTER_API_KEY` set: `RagGoldenEvalTest`. Tenant isolation must pass every time; answer quality asserts a pass rate (2 of 3), because model output varies.
+- Only with `OPENROUTER_API_KEY` set: `RagRetrievalEvalTest`, `RagGoldenEvalTest`, `RagJudgeEvalTest` (see below).
+
+### Eval layers (cheapest and most reliable first)
+
+| Layer | Test | Checks | Model calls | Asserts |
+|---|---|---|---|---|
+| 1. Deterministic | `RefundPolicyTest`, `CitationGuardTest`, ... | Rules in code | none | 100% |
+| 2. Retrieval | `RagRetrievalEvalTest` | Expected source is in topK; never another tenant's docs | embeddings only | 100% |
+| 3a. Golden set | `RagGoldenEvalTest` | Answer contains a keyword and cites the right source | RAG model | 2 of 3 (isolation: 100%) |
+| 3b. LLM-as-judge | `RagJudgeEvalTest` | `FactCheckingEvaluator` (answer supported by retrieved docs?) + `RelevancyEvaluator` (answers the question?) | RAG model + judge | 2 of 3 |
+
+- Layer 2 separates **retrieval failures** (the right doc never reached the model) from **generation failures** (it did, but the answer was wrong). Fix retrieval first.
+- The judge is a **different model** (`qwen/qwen3.7-flash`) from prod, so the model doesn't grade itself. It reuses the OpenRouter connection by overriding `model` in a copy of `ChatClient.Builder` (`defaultOptions(OpenAiChatOptions.builder().model(...))`).
+- `judgeCatchesAHallucination` tests the judge itself: a made-up answer must fail. A judge that says "yes" to everything is useless.
+- Both evaluators pass only on a reply of exactly `yes`, so the fact-check prompt asks for one bare word.
 
 ## Deliberately left out (to stay basic)
 
-- Real auth (Spring Security), persistent memory (JDBC/Redis), a real vector DB (pgvector), chunking of large files, timeouts/retries/fallbacks, streaming, async jobs, LLM-as-judge.
+- Real auth (Spring Security), persistent memory (JDBC/Redis), a real vector DB (pgvector), chunking of large files, timeouts/retries/fallbacks, streaming, async jobs.
 - MCP: see the sibling projects `mcp-quote-server` and `mcp-quote-client`.
