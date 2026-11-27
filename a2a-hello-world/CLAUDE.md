@@ -10,9 +10,10 @@ Java 17, Spring Boot 3.4.1, Spring AI 1.0.0 (ollama/openai/anthropic starters), 
 - Port 8080. `GET /ask?q=...`; agents `POST /joke`, `POST /quote`; cards `/{agent}/.well-known/agent-card.json`
 
 ## Config
-- `a2a.llm.provider` = ollama (default) | openai | anthropic; override `--a2a.llm.provider=openai`
-- Ollama default: http://localhost:11434, model llama3.1 (needs local Ollama)
-- Env: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` (only for those providers)
+- `a2a.llm.provider` = openai (default; OpenAI-compatible -> OpenRouter) | ollama | anthropic; override `--a2a.llm.provider=ollama`
+- OpenRouter: base-url https://openrouter.ai/api (Spring AI 1.0 appends /v1/chat/completions -> no /v1), model deepseek/deepseek-v4.1-flash
+- Ollama: http://localhost:11434, model llama3.1 (needs local Ollama)
+- Env: `OPENROUTER_API_KEY` (+ optional `OPENROUTER_MODEL`), `ANTHROPIC_API_KEY` (only for anthropic)
 
 ## Layout (`com.example.a2a`)
 - OrchestratorController, JokeAgentController, QuoteAgentController, A2aSupport, AiConfig

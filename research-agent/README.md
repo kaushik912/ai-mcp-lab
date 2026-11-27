@@ -1,17 +1,17 @@
-# Research Agent (Gemini)
+# Research Agent (OpenRouter)
 
 End-to-end Java AI agent, following the [dev.to article's](https://dev.to/ashish_sharda_a540db2e50e/i-built-an-ai-agent-in-java-no-python-no-hype-just-code-1p2l)
 architecture (ChatClient + MCP tool calling + RAG + session memory), built
-on **Gemini only** (no Anthropic/OpenAI in this build).
+on **OpenRouter only** (one key for chat + embeddings).
 
 ## Architecture
 
 ```
-POST /agent/knowledge  ─► SimpleVectorStore (in-memory, Gemini embeddings)
+POST /agent/knowledge  ─► SimpleVectorStore (in-memory, openai/text-embedding-3-small via OpenRouter)
 GET  /agent/ask?question=...&sessionId=...
       │
       ▼
- ChatClient (Gemini chat, via OpenAI-compatible endpoint)
+ ChatClient (deepseek/deepseek-v4.1-flash via OpenRouter's OpenAI-compatible endpoint)
    ├─ MessageChatMemoryAdvisor   — per-sessionId conversation history
    ├─ QuestionAnswerAdvisor      — RAG: injects relevant ingested docs
    └─ MCP tool callbacks         — discovered from research-agent-news-tool at startup
@@ -20,23 +20,18 @@ GET  /agent/ask?question=...&sessionId=...
 ```
 
 - **AgentConfig** — wires the `ChatMemory`, `VectorStore`, and the single
-  Gemini `ChatClient` bean with both advisors + MCP tool callbacks attached.
+  `ChatClient` bean with both advisors + MCP tool callbacks attached.
 - **ResearchAgentController** — `POST /agent/knowledge` seeds the vector
   store; `GET /agent/ask` queries the agent.
-- Gemini chat rides Spring AI's OpenAI starter pointed at Google's
-  OpenAI-compatible endpoint. Gemini **embeddings** use the native
-  `spring-ai-starter-model-google-genai-embedding` module instead — Gemini's
-  OpenAI-compatible `/embeddings` response omits the `index` field each
-  item needs, which the strict `openai-java` client rejects
-  (`OpenAIInvalidDataException: index is not set`).
+- Chat and embeddings both ride Spring AI's OpenAI starter pointed at
+  OpenRouter's OpenAI-compatible endpoint.
 
 ## Prerequisites
 
 1. **`research-agent-news-tool` must be running first**, on port 8090 — this app's
    MCP client autoconfig connects to it at startup and fails to boot if it's
    unreachable.
-2. A free Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey),
-   exported as `GEMINI_API_KEY`.
+2. An OpenRouter API key, exported as `OPENROUTER_API_KEY`.
 
 ## Run
 
@@ -47,7 +42,7 @@ mvn spring-boot:run
 
 # terminal 2 — start this app
 cd research-agent
-export GEMINI_API_KEY=...
+export OPENROUTER_API_KEY=...
 mvn spring-boot:run
 ```
 
@@ -59,7 +54,7 @@ Runs on **port 8080**.
 # 1. seed the knowledge base (RAG)
 curl -s -X POST http://localhost:8080/agent/knowledge \
   -H "Content-Type: application/json" \
-  -d '["Kaushik has a Spring Boot MCP demo repo called research-agent that uses Gemini as its LLM.",
+  -d '["Kaushik has a Spring Boot MCP demo repo called research-agent that uses DeepSeek via OpenRouter as its LLM.",
        "The research-agent project talks to a separate MCP tool server called research-agent-news-tool running on port 8090."]'
 
 # 2. ask a question answerable from the ingested docs (RAG)
@@ -77,21 +72,18 @@ curl -s -G http://localhost:8080/agent/ask \
   --data-urlencode "sessionId=s1" --data-urlencode "question=What is my name?"
 ```
 
-All four were verified working end-to-end against live Gemini + the MCP
-tool server during development of this app.
+All four were verified end-to-end against live Gemini + the MCP tool server
+during original development; not yet re-verified since the switch to OpenRouter.
 
 ## Configuration (`application.properties`)
 
 - `spring.ai.mcp.client.sse.connections.news.url` — points at research-agent-news-tool (:8090).
-- `spring.ai.openai.*` — Gemini chat, via the OpenAI-compatible endpoint (`gemini-flash-lite-latest`).
-- `spring.ai.model.embedding=none` — disables the OpenAI starter's own (incompatible) embedding autoconfig.
-- `spring.ai.google.genai.embedding.*` — Gemini embeddings, native module (`gemini-embedding-001`).
-
-Both `spring.ai.openai.api-key` and `spring.ai.google.genai.embedding.api-key`
-read from the same `GEMINI_API_KEY` env var.
+- `spring.ai.openai.base-url` / `api-key` — OpenRouter (`https://openrouter.ai/api/v1`), key from `OPENROUTER_API_KEY`.
+- `spring.ai.openai.chat.options.model` — `deepseek/deepseek-v4.1-flash` (override with `OPENROUTER_MODEL`).
+- `spring.ai.openai.embedding.model` — `openai/text-embedding-3-small`.
 
 ## Stack
 
 Java 17, Spring Boot 4.1.0, Spring AI 2.0.0 — MCP client (WebFlux/SSE
-transport), OpenAI starter (Gemini chat), Google GenAI embedding starter
-(Gemini embeddings), in-memory `SimpleVectorStore`, Maven.
+transport), OpenAI starter (chat + embeddings via OpenRouter), in-memory
+`SimpleVectorStore`, Maven.

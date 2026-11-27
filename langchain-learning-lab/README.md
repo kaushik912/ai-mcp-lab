@@ -16,7 +16,7 @@ pip install -e .       # makes `common/` importable from any example script
 cp .env.example .env   # then fill in whichever provider key(s) you use
 ```
 
-Most examples default to Gemini, which has a free tier (`GEMINI_API_KEY` in `.env`, no local model or paid credits needed) — see `docs/setup.md`. OpenAI is a drop-in alternative wherever a script exposes `--provider`.
+Examples default to OpenRouter (`OPENROUTER_API_KEY` in `.env`; chat model `deepseek/deepseek-v4.1-flash`, set in `common/config.py`) — see `docs/setup.md`. Gemini and OpenAI are drop-in alternatives wherever a script exposes `--provider`.
 
 ## Running an example
 

@@ -29,7 +29,7 @@ OrchestratorController  ──(LLM routes)──►  joke-agent | quote-agent
 
 ## LLM provider
 
-Pluggable via `a2a.llm.provider` (`ollama` default | `openai` | `anthropic`).
+Pluggable via `a2a.llm.provider` (`openai` default, pointed at OpenRouter | `ollama` | `anthropic`).
 `AiConfig` picks the matching `ChatModelFactory` and builds three
 `ChatClient` beans (joke/quote/router) at different temperatures. Spring AI's
 chat auto-config is disabled (`spring.ai.model.chat=none`) so unused
@@ -38,21 +38,22 @@ providers don't demand API keys.
 | Provider  | Config |
 |-----------|--------|
 | ollama    | `a2a.llm.ollama.base-url`, `a2a.llm.ollama.model` (default `llama3.1`) |
-| openai    | `OPENAI_API_KEY` env, `a2a.llm.openai.model` (default `gpt-4o-mini`) |
+| openai    | `OPENROUTER_API_KEY` env, `a2a.llm.openai.base-url` (default `https://openrouter.ai/api`, no `/v1`), `a2a.llm.openai.model` (default `deepseek/deepseek-v4.1-flash`, override with `OPENROUTER_MODEL`) |
 | anthropic | `ANTHROPIC_API_KEY` env, `a2a.llm.anthropic.model` (default `claude-sonnet-5`) |
 
 ## Run
 
 ```bash
-# default: local Ollama on :11434, model llama3.1
+# default: OpenRouter, model deepseek/deepseek-v4.1-flash
+export OPENROUTER_API_KEY=...
 ./mvnw spring-boot:run
 
 curl "http://localhost:8080/ask?q=tell+me+a+joke+about+cats"
 curl "http://localhost:8080/ask?q=give+me+an+inspiring+quote"
 ```
 
-Switch provider: `--a2a.llm.provider=openai` (or `anthropic`) + matching API
-key env var.
+Switch provider: `--a2a.llm.provider=ollama` (local, no key) or `anthropic`
+(+ `ANTHROPIC_API_KEY`).
 
 ## Stack
 

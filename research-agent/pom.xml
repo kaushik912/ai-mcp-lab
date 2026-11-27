@@ -32,23 +32,10 @@
 			<artifactId>spring-ai-starter-mcp-client-webflux</artifactId>
 		</dependency>
 
-		<!-- Gemini chat via Google's OpenAI-compatible endpoint -->
+		<!-- Chat + embeddings via OpenRouter's OpenAI-compatible endpoint -->
 		<dependency>
 			<groupId>org.springframework.ai</groupId>
 			<artifactId>spring-ai-starter-model-openai</artifactId>
-		</dependency>
-
-		<!--
-		  Gemini embeddings via the native Google GenAI module, not the
-		  OpenAI-compat endpoint: Gemini's OpenAI-compatible /embeddings
-		  response omits the "index" field on each item, which the strict
-		  openai-java client rejects (OpenAIInvalidDataException: `index`
-		  is not set). The native module talks to Gemini directly and
-		  doesn't hit that incompatibility.
-		-->
-		<dependency>
-			<groupId>org.springframework.ai</groupId>
-			<artifactId>spring-ai-starter-model-google-genai-embedding</artifactId>
 		</dependency>
 
 		<!-- SimpleVectorStore (in-memory) for RAG; no dedicated starter, just the core module -->

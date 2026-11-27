@@ -15,11 +15,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Wires the single Gemini-backed ChatClient: same "brain" (OpenAiChatModel
- * pointed at Google's OpenAI-compatible endpoint) but with tool calling
+ * Wires the single OpenRouter-backed ChatClient: same "brain" (OpenAiChatModel
+ * pointed at OpenRouter's OpenAI-compatible endpoint) but with tool calling
  * (MCP), retrieval (RAG over an in-memory vector store) and session memory
  * layered on as advisors — mirrors the article's ResearchAgent, minus the
- * Anthropic/Ollama options since this build is Gemini-only.
+ * Anthropic/Ollama options since this build is OpenRouter-only.
  */
 @Configuration
 public class AgentConfig {
@@ -38,11 +38,11 @@ public class AgentConfig {
     }
 
     @Bean
-    public ChatClient researchAgent(OpenAiChatModel geminiModel,
+    public ChatClient researchAgent(OpenAiChatModel chatModel,
                                      ToolCallbackProvider mcpTools,
                                      VectorStore vectorStore,
                                      ChatMemory chatMemory) {
-        return ChatClient.builder(geminiModel)
+        return ChatClient.builder(chatModel)
                 .defaultToolCallbacks(mcpTools)
                 .defaultAdvisors(
                         MessageChatMemoryAdvisor.builder(chatMemory).build(),

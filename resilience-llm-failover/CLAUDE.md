@@ -12,7 +12,7 @@ Java 17, Spring Boot 3.5.3, Resilience4j 2.3.0, LangChain4j (google-ai-gemini 1.
 
 ## Config
 - Env: `GEMINI_API_KEY`, `OPENROUTER_API_KEY` (empty default)
-- `gemini.model-name` (yml: gemini-1.5-turbo), `openrouter.model-name` (openrouter/free), base-url https://openrouter.ai/api/v1
+- `gemini.model-name` (yml: gemini-1.5-turbo), `openrouter.model-name` (deepseek/deepseek-v4.1-flash), base-url https://openrouter.ai/api/v1
 - CB: window 4, min calls 2, 50% failure, 10s open; records only `RateLimitException`
 
 ## Layout (`com.example.resiliencellmfailover`)

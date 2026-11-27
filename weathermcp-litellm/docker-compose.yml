@@ -23,9 +23,8 @@ services:
     environment:
       # aggregate tools from BOTH MCP servers
       MCP_URLS: "http://weather-mcp:8001/mcp,http://quote-mcp:8002/mcp"
-      MODEL: "${MODEL:-anthropic/claude-sonnet-5}"
-      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}"
-      # OPENROUTER_API_KEY: "${OPENROUTER_API_KEY}"
+      MODEL: "${MODEL:-openrouter/deepseek/deepseek-v4.1-flash}"
+      OPENROUTER_API_KEY: "${OPENROUTER_API_KEY}"
     ports:
       - "8000:8000"
     depends_on:

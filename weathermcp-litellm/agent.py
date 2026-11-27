@@ -27,7 +27,7 @@ from mcp.client.streamable_http import streamablehttp_client
 # ---- config (all swappable via env -> no vendor lock-in) --------------------
 # BYOK: the visitor's OpenRouter key arrives per request in the X-OpenRouter-Key
 # header and is passed straight to LiteLLM. It is never stored or logged.
-MODEL = os.getenv("MODEL", "openrouter/~deepseek/deepseek-v4-flash-latest")
+MODEL = os.getenv("MODEL", "openrouter/deepseek/deepseek-v4.1-flash")
 # e.g. MODEL="ollama/llama3.1"  or  "openrouter/meta-llama/llama-3.1-8b-instruct"
 MAX_MESSAGE_CHARS = 500
 
