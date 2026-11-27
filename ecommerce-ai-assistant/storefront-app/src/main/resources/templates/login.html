@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShopSphere · Sign in</title>
+  <link rel="icon" href="data:,">
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center p-4">
+  <main class="w-full max-w-md rounded-2xl bg-white/95 shadow-2xl p-8">
+    <div class="flex items-center gap-3 mb-1">
+      <div class="h-10 w-10 rounded-xl bg-indigo-600 text-white grid place-items-center text-xl">◎</div>
+      <h1 class="text-2xl font-bold text-slate-900">ShopSphere</h1>
+    </div>
+    <p class="text-slate-500 mb-6">AI Concierge demo · pick a demo customer</p>
+
+    <p th:if="${param.error}" class="mb-4 rounded-lg bg-red-50 text-red-700 px-3 py-2 text-sm">Unknown demo user.</p>
+    <p th:if="${param.logout}" class="mb-4 rounded-lg bg-slate-100 text-slate-700 px-3 py-2 text-sm">Signed out.</p>
+
+    <form th:action="@{/demo/login/alex}" method="post" class="mb-3">
+      <button id="login-alex" class="w-full flex items-center gap-4 rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50 p-4 text-left transition">
+        <span class="h-11 w-11 rounded-full bg-amber-400 text-slate-900 grid place-items-center font-bold">A</span>
+        <span class="flex-1">
+          <span class="block font-semibold text-slate-900">Alex <span class="ml-1 rounded-full bg-amber-400/90 px-2 py-0.5 text-xs font-bold">VIP</span></span>
+          <span class="block text-sm text-slate-500">Bangalore 560100 · 4 orders, every demo scenario</span>
+        </span>
+        <span class="text-slate-400">→</span>
+      </button>
+    </form>
+    <form th:action="@{/demo/login/priya}" method="post">
+      <button id="login-priya" class="w-full flex items-center gap-4 rounded-xl border border-slate-200 hover:border-sky-400 hover:bg-sky-50 p-4 text-left transition">
+        <span class="h-11 w-11 rounded-full bg-sky-500 text-white grid place-items-center font-bold">P</span>
+        <span class="flex-1">
+          <span class="block font-semibold text-slate-900">Priya <span class="ml-1 rounded-full bg-slate-200 px-2 py-0.5 text-xs font-semibold">Standard</span></span>
+          <span class="block text-sm text-slate-500">Mumbai 400001 · owns ORD-2001 (isolation demo)</span>
+        </span>
+        <span class="text-slate-400">→</span>
+      </button>
+    </form>
+
+    <p class="mt-6 text-xs text-slate-400">Demo-only one-click login. API/curl access: HTTP Basic <code>alex:demo</code> / <code>priya:demo</code>.</p>
+  </main>
+</body>
+</html>

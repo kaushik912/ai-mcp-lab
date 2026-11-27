@@ -1,0 +1,11 @@
+{
+  "name": "shopsphere-ui-smoke",
+  "private": true,
+  "description": "Browser smoke test for the storefront UI (see docs/HOW_TO_TEST_PHASE5.md)",
+  "scripts": {
+    "smoke": "node ui-smoke.js ui-shots"
+  },
+  "dependencies": {
+    "playwright-core": "1.49.1"
+  }
+}

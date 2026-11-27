@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShopSphere · AI Concierge</title>
+  <link rel="icon" href="data:,">
+  <meta name="_csrf" th:content="${_csrf.token}">
+  <meta name="_csrf_header" th:content="${_csrf.headerName}">
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+  <style>
+    @keyframes flash { 0% { background-color: rgb(187 247 208); } 100% { background-color: transparent; } }
+    .flash { animation: flash 2.2s ease-out; }
+    .md p { margin: .35rem 0; } .md ul { list-style: disc; padding-left: 1.1rem; margin: .35rem 0; }
+    .md ol { list-style: decimal; padding-left: 1.1rem; } .md strong { font-weight: 600; }
+    .md code { background: rgb(241 245 249); padding: 0 .25rem; border-radius: .25rem; font-size: .8em; }
+    .md table { font-size: .8em; margin: .35rem 0; } .md td, .md th { border: 1px solid rgb(226 232 240); padding: .15rem .35rem; }
+    .md h1, .md h2, .md h3 { font-weight: 600; margin: .4rem 0 .2rem; }
+  </style>
+</head>
+<body class="h-screen flex flex-col bg-slate-100 text-slate-800">
+
+<!-- ===== Top bar ===== -->
+<header class="shrink-0 bg-slate-900 text-white">
+  <div class="flex flex-wrap items-center gap-3 px-4 py-2.5">
+    <div class="flex items-center gap-2 mr-auto">
+      <div class="h-8 w-8 rounded-lg bg-indigo-500 grid place-items-center">◎</div>
+      <span class="font-bold text-lg">ShopSphere</span>
+      <span class="hidden sm:inline text-xs text-slate-400 border border-slate-700 rounded-full px-2 py-0.5">RAG · @Tool · MCP</span>
+    </div>
+
+    <div id="user-badge" class="flex items-center gap-2 rounded-full bg-slate-800 pl-1 pr-3 py-1"
+         th:attr="data-username=${user.username}">
+      <span class="h-7 w-7 rounded-full grid place-items-center font-bold text-sm"
+            th:classappend="${user.tier == 'VIP'} ? 'bg-amber-400 text-slate-900' : 'bg-sky-500 text-white'"
+            th:text="${#strings.substring(user.displayName,0,1)}">A</span>
+      <span class="text-sm" th:text="${user.displayName + ' - ' + (user.tier == 'VIP' ? 'VIP' : 'Standard')}">Alex - VIP</span>
+    </div>
+
+    <div class="flex rounded-lg bg-slate-800 p-0.5 text-sm" title="Switch demo user (new session, new chat memory)">
+      <form th:action="@{/demo/login/alex}" method="post">
+        <button id="switch-alex" class="rounded-md px-3 py-1"
+                th:classappend="${user.username == 'alex'} ? 'bg-amber-400 text-slate-900 font-semibold' : 'text-slate-300 hover:text-white'">Alex</button>
+      </form>
+      <form th:action="@{/demo/login/priya}" method="post">
+        <button id="switch-priya" class="rounded-md px-3 py-1"
+                th:classappend="${user.username == 'priya'} ? 'bg-sky-500 text-white font-semibold' : 'text-slate-300 hover:text-white'">Priya</button>
+      </form>
+    </div>
+
+    <button id="reset-btn" class="rounded-lg border border-slate-600 hover:bg-slate-800 px-3 py-1 text-sm">↺ Reset Demo Data</button>
+    <form th:action="@{/logout}" method="post">
+      <button class="text-sm text-slate-400 hover:text-white px-1">Sign out</button>
+    </form>
+  </div>
+</header>
+
+<main class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[7fr_3fr]">
+
+  <!-- ===== Left: catalog + orders (70%) ===== -->
+  <section class="min-h-0 overflow-y-auto p-4 space-y-6">
+
+    <div>
+      <div class="flex flex-wrap items-center gap-2 mb-3">
+        <h2 class="text-lg font-semibold mr-2">Catalog</h2>
+        <div id="category-filters" class="flex flex-wrap gap-1.5 text-sm"></div>
+        <span class="ml-auto text-xs text-slate-500">Live stock from the database</span>
+      </div>
+      <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3"></div>
+    </div>
+
+    <div>
+      <div class="flex items-center gap-2 mb-3">
+        <h2 class="text-lg font-semibold">My Orders</h2>
+        <span class="text-xs text-slate-500">only orders owned by <b th:text="${user.username}">alex</b> · updates after each assistant action</span>
+      </div>
+      <div class="overflow-x-auto rounded-xl bg-white shadow-sm">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 text-slate-500 text-left">
+            <tr>
+              <th class="px-3 py-2 font-medium">Order</th>
+              <th class="px-3 py-2 font-medium">Item</th>
+              <th class="px-3 py-2 font-medium">Delivery</th>
+              <th class="px-3 py-2 font-medium">Status</th>
+              <th class="px-3 py-2 font-medium">Return / RMA</th>
+            </tr>
+          </thead>
+          <tbody id="orders-body" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Right: AI assistant + X-Ray (30%) ===== -->
+  <aside class="min-h-0 flex flex-col bg-white border-l border-slate-200">
+    <div class="shrink-0 px-4 py-3 border-b border-slate-200">
+      <div class="flex items-center gap-2">
+        <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+        <h2 class="font-semibold">Sphere · AI Concierge</h2>
+        <button id="clear-chat" class="ml-auto text-xs text-slate-400 hover:text-slate-700">New chat</button>
+      </div>
+      <p class="text-xs text-slate-500">Open <b>Agent X-Ray</b> under any reply to see RAG, tools and MCP calls.</p>
+    </div>
+
+    <div id="chat-log" class="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-3 text-sm">
+      <div class="rounded-xl bg-slate-50 p-3 text-slate-600">
+        Hi <span th:text="${user.displayName}">Alex</span>! Ask about products, orders, returns or deliveries, or tap a demo prompt below.
+      </div>
+    </div>
+
+    <div class="shrink-0 border-t border-slate-200 p-3 space-y-2">
+      <div id="demo-chips" class="flex flex-wrap gap-1.5"></div>
+      <form id="chat-form" class="flex gap-2">
+        <input id="chat-input" autocomplete="off" placeholder="Ask Sphere…"
+               class="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+        <button id="chat-send" class="rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-4 text-sm font-medium">Send</button>
+      </form>
+    </div>
+  </aside>
+</main>
+
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>
