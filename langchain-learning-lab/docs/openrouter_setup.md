@@ -45,7 +45,7 @@ console.log(response.content);
 
 ### 3. Key Capabilities & Custom Configurations
 
-* **Model Swapping**: Specify models using the `provider/model` slug format (e.g., `openai/gpt-5-mini` or `deepseek/deepseek-r1`).
+* **Model Swapping**: Specify models using the `provider/model` slug format (e.g., `openai/gpt-5-mini` or `deepseek/deepseek-v4.1-flash`).
 * **Provider Routing & Failover**: Steer provider preference, routing behaviors, or fallbacks via `openrouter_provider`:
 ```python
 model = ChatOpenRouter(
